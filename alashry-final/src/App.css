@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+*{
+    font-family: "Cairo", sans-serif;
+    font-weight: 700;
+}
