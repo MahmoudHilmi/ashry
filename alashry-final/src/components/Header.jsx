@@ -1,26 +1,32 @@
 import React from "react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { WHATSAPP_NUMBER } from './../../public/constants';
+import { Link, useNavigate } from "react-router-dom";
+
+
 
 const Header = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [visible, setVisible] = useState(false);
 
+  const WHATSAPP_NUMBER = "201092846526"
   
+
     const handleWA = (e) => {
-    e.stopPropagation();
+
     const msg = encodeURIComponent(
       `أود الاستفسار عن احدث المنتجات!!`,
     );
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, "_blank");
   };
+  const navigate = useNavigate()
 
   return (
     <>
       <header className="sticky top-0 z-50 bg-white/92 backdrop-blur border-b border-[#EFE8DD]">
         <div className="max-w-7xl mx-auto px-6 lg:px-12 flex items-center justify-between h-[72px]">
-          <div className="flex items-center justify-center gap-1">
+          <div 
+          onClick={()=> navigate("/")}
+          className="flex items-center justify-center gap-1">
             <img src="/logo.jpg" alt="" className="w-16 rounded-full" />
 
             <a href="#" className="flex flex-col leading-none">
@@ -103,7 +109,9 @@ const Header = () => {
             {l.name}
           </Link>
         ))}
-        <button className="mt-4 bg-[#C9A24A] text-white px-10 py-3 text-sm tracking-widest uppercase">
+        <button
+        onClick={()=>handleWA()}
+         className="mt-4 bg-[#C9A24A] text-white px-10 py-3 text-sm tracking-widest uppercase cursor-ponter ">
           احجز الان
         </button>
       </div>
