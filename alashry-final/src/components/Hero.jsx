@@ -121,7 +121,7 @@ export default function Hero() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=Tajawal:wght@300;400;500;700&display=swap');
 
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
 
         :root {
           --gold: #C9A24A;
@@ -141,7 +141,7 @@ export default function Hero() {
           background: var(--cream);
           color: var(--dark);
           overflow-x: hidden;
-          direction: rtl;
+          direction: ltr;
         }
 
         /* ── HERO SECTION ── */
@@ -304,7 +304,7 @@ export default function Hero() {
         }
 
         @media (max-width: 768px) {
-          .hero-right { min-height: 260px; }
+          .hero-right { min-height: 260px; order: 1; }
         }
 
         .hero-right-slider { position: absolute; inset: 0; }
@@ -501,17 +501,8 @@ export default function Hero() {
               <div className="eyebrow-line" />
             </div>
 
-            <h1 style={up(120)} className="hero-h1">
-              مصممة <em className="hero-h1-italic">تعيش</em>{" "}
-              <span className="gold-underline-wrap">
-                سنين
-                <span
-                  className="gold-underline"
-                  style={{
-                    transform: vis ? "scaleX(1)" : "scaleX(0)",
-                  }}
-                />
-              </span>
+            <h1 style={up(120)} className="hero-h1 font-black">
+مصممة تعيش سنين
             </h1>
 
             <p style={up(220)} className="hero-tagline">
@@ -556,9 +547,6 @@ export default function Hero() {
             </div>
             <div className="hero-right-overlay" />
 
-            <div className="spin-ring">
-              <span className="spin-ring-text">الفخامة</span>
-            </div>
 
             <div className="float-card">
               <p className="float-card-eyebrow">أحدث قطع 2026</p>
@@ -568,9 +556,7 @@ export default function Hero() {
             <div className="corner corner-br" />
             <div className="corner corner-tl" />
 
-            <div className="img-counter">
-              
-            </div>
+            <div className="img-counter">01 / 04</div>
           </div>
         </section>
 
