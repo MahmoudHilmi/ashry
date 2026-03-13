@@ -8,7 +8,7 @@
  */
 import { useState } from "react";
 
-const WHATSAPP_NUMBER = "201026226361"; // ← User updated WhatsApp number
+const WHATSAPP_NUMBER = "201092846526"; // ← User updated WhatsApp number
 
 const badgeStyle = {
   الأفضل: { bg: "#5A341A", color: "#fff" },
