@@ -4,7 +4,7 @@ import Header from "../components/Header";
 import MOCK_PRODUCTS from "../assets/data";
 import ProductCard from "../components/ProductCard";
 
-const WHATSAPP_NUMBER = "2001092846526";
+const WHATSAPP_NUMBER = "201092846526";
 
 const WA_ICON = (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">

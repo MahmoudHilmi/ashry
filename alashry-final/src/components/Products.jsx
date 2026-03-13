@@ -12,7 +12,7 @@ const SORT_OPTIONS = [
   { label: "السعر: من الأعلى للأقل", value: "price_desc" },
   { label: "الاسم: أ → ي", value: "name_asc" },
 ];
-const WHATSAPP_NUMBER = "2001026226361";
+const WHATSAPP_NUMBER = "201092846526";
 const badgeStyle = {
   الأفضل: { bg: "#5A341A", color: "#fff" },
   جديد: { bg: "#C9A24A", color: "#fff" },
