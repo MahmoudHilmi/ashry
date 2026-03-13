@@ -1,8 +1,23 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Star,
+  Shield,
+  Truck,
+  Wrench,
+  Bed,
+  Baby,
+  Sofa,
+  ChevronRight,
+  Sparkles,
+  Award,
+} from "lucide-react";
 import Slider from "./Slider";
 import Header from "./Header";
 
+/* ─── constants ─────────────────────────────────────────────── */
 const STATS = [
   { num: "20+", label: "عاماً من الخبرة", sub: "Years of craft" },
   { num: "500+", label: "قطعة مميزة", sub: "Unique pieces" },
@@ -11,26 +26,35 @@ const STATS = [
 
 const CATEGORIES = [
   {
-    emoji: "🛏",
+    Icon: Bed,
     name: "غرف نوم",
     count: "+80 قطعة",
     href: "/products?cat=bedroom",
   },
   {
-    emoji: "🧸",
+    Icon: Baby,
     name: "غرف أطفال",
     count: "+60 قطعة",
     href: "/products?cat=kids",
   },
   {
-    emoji: "🛋",
+    Icon: Sofa,
     name: "قطع منفردة",
     count: "+40 قطعة",
     href: "/products?cat=single",
   },
 ];
 
-/* ─── tiny spring counter hook ─────────────────────────────────── */
+const MARQUEE_ITEMS = [
+  { Icon: Wrench, text: "صناعة يدوية" },
+  { Icon: Shield, text: "ضمان ٣ سنوات" },
+  { Icon: Truck, text: "توصيل مجاني" },
+  { Icon: Star, text: "خشب صلب" },
+  { Icon: Sparkles, text: "جلد إيطالي" },
+  { Icon: Award, text: "تصميم مصري" },
+];
+
+/* ─── spring counter hook ────────────────────────────────────── */
 function useCountUp(target, active, duration = 1600) {
   const [val, setVal] = useState(0);
   useEffect(() => {
@@ -50,706 +74,553 @@ function useCountUp(target, active, duration = 1600) {
   return val || "0";
 }
 
+/* ─── stat item ─────────────────────────────────────────────── */
 function StatItem({ num, label, sub, active }) {
   const val = useCountUp(num, active);
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-      <span
-        style={{
-          fontFamily: "'Playfair Display',serif",
-          fontSize: "clamp(1.8rem,3.5vw,2.8rem)",
-          fontWeight: 700,
-          color: "#C9A24A",
-          lineHeight: 1,
-          letterSpacing: "-0.01em",
-        }}
-      >
-        {val}
-      </span>
-      <span style={{ fontSize: 13, color: "#EFE8DD", fontWeight: 500 }}>
-        {label}
-      </span>
-      <span
-        style={{
-          fontSize: 10,
-          letterSpacing: "0.18em",
-          textTransform: "uppercase",
-          color: "rgba(201,162,74,0.5)",
-        }}
-      >
-        {sub}
-      </span>
+    <div className="stat-item">
+      <span className="stat-num">{val}</span>
+      <span className="stat-label">{label}</span>
+      <span className="stat-sub">{sub}</span>
     </div>
   );
 }
 
+/* ─── main component ─────────────────────────────────────────── */
 export default function Hero() {
   const navigate = useNavigate();
   const statsRef = useRef(null);
-  const [vis, setVis] = useState(false); // entrance animation
-  const [statsOn, setStatsOn] = useState(false); // counter trigger
-  const [hovCat, setHovCat] = useState(null);
+  const [vis, setVis] = useState(false);
+  const [statsOn, setStatsOn] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  /* entrance animation */
   useEffect(() => {
     const t = setTimeout(() => setVis(true), 60);
     return () => clearTimeout(t);
   }, []);
 
-  /* trigger counter when stats bar enters viewport */
   useEffect(() => {
     const ob = new IntersectionObserver(
       ([e]) => {
         if (e.isIntersecting) setStatsOn(true);
       },
-      { threshold: 0.4 },
+      { threshold: 0.3 },
     );
     if (statsRef.current) ob.observe(statsRef.current);
     return () => ob.disconnect();
   }, []);
 
-  /* staggered fade-up helper */
   const up = (delay = 0) => ({
     opacity: vis ? 1 : 0,
-    transform: vis ? "translateY(0)" : "translateY(28px)",
-    transition: `opacity 0.75s ease ${delay}ms, transform 0.75s ease ${delay}ms`,
+    transform: vis ? "translateY(0)" : "translateY(24px)",
+    transition: `opacity 0.7s ease ${delay}ms, transform 0.7s ease ${delay}ms`,
   });
-
-    const handleWA = (e) => {
-    e.stopPropagation();
-    const msg = encodeURIComponent(
-      `مرحباً، أود الاستفسار عن:\n\n🪑 *${product.name}*\n🆔 رقم المنتج: ${product.id}\n💰 السعر: ${product.price.toLocaleString()} EGP\n🔩 المواد: ${product.materials.join("، ")}\n\nأرجو التواصل معي. شكراً!`,
-    );
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, "_blank");
-  };
 
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700&family=Tajawal:wght@300;400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=Tajawal:wght@300;400;500;700&display=swap');
 
-        .hero-root *,
-        .hero-root *::before,
-        .hero-root *::after { box-sizing: border-box; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        /* subtle grain overlay */
-        .hero-grain::before {
-          content: '';
-          position: absolute; inset: 0; z-index: 0; pointer-events: none;
-          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-          background-repeat: repeat;
-          background-size: 128px;
-          opacity: 0.5;
+        :root {
+          --gold: #C9A24A;
+          --gold-light: rgba(201,162,74,0.15);
+          --gold-muted: rgba(201,162,74,0.5);
+          --dark: #2B1A12;
+          --brown: #5A341A;
+          --cream: #F5F1EA;
+          --cream-2: #EFE8DD;
+          --text-muted: #7A5A3A;
+          --serif: 'Playfair Display', serif;
+          --sans: 'Tajawal', sans-serif;
+        }
+
+        .hr {
+          font-family: var(--sans);
+          background: var(--cream);
+          color: var(--dark);
+          overflow-x: hidden;
+          direction: rtl;
+        }
+
+        /* ── HERO SECTION ── */
+        .hero-section {
+          position: relative;
+          min-height: calc(100svh - 64px);
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          overflow: hidden;
+        }
+
+        @media (max-width: 768px) {
+          .hero-section {
+            grid-template-columns: 1fr;
+            min-height: auto;
+          }
         }
 
         /* dot pattern */
         .dot-bg {
+          position: absolute; inset: 0; z-index: 1; pointer-events: none;
           background-image: radial-gradient(circle, #C9A24A18 1px, transparent 1px);
-          background-size: 22px 22px;
+          background-size: 20px 20px;
+          opacity: 0.5;
         }
 
-        /* spinning ring */
-        @keyframes spinRing { to { transform: rotate(360deg); } }
-        .spin-ring { animation: spinRing 22s linear infinite; }
-
-        /* floating card */
-        @keyframes floatCard {
-          0%,100% { transform: translateY(0);   }
-          50%     { transform: translateY(-7px); }
+        /* glow */
+        .hero-glow {
+          position: absolute; top: -10%; right: 8%;
+          width: min(55vw, 600px); height: min(55vw, 600px);
+          background: radial-gradient(circle, rgba(201,162,74,0.1) 0%, transparent 70%);
+          border-radius: 50%; pointer-events: none; z-index: 1;
         }
-        .float-card { animation: floatCard 4.5s ease-in-out infinite; }
 
-        /* gold sweep button */
-        .btn-sweep { position: relative; overflow: hidden; isolation: isolate; }
-        .btn-sweep::after {
+        /* ── LEFT PANEL ── */
+        .hero-left {
+          position: relative; z-index: 2;
+          display: flex; flex-direction: column; justify-content: center;
+          padding: clamp(32px,6vw,88px) clamp(20px,5vw,64px);
+        }
+
+        @media (max-width: 768px) {
+          .hero-left {
+            padding: 36px 20px 28px;
+            order: 2;
+          }
+        }
+
+        .eyebrow {
+          display: flex; align-items: center; gap: 10px;
+          margin-bottom: 24px;
+        }
+        .eyebrow-line { flex: 0 0 28px; height: 1px; background: var(--gold); }
+        .eyebrow-text {
+          font-size: 9px; letter-spacing: 0.3em;
+          text-transform: uppercase; color: var(--gold); font-weight: 500;
+        }
+
+        .hero-h1 {
+          font-family: var(--serif);
+          font-size: clamp(2.4rem, 5.5vw, 4.8rem);
+          font-weight: 800; line-height: 1.1;
+          color: var(--dark); letter-spacing: -0.02em;
+          margin-bottom: 0;
+        }
+
+        @media (max-width: 768px) {
+          .hero-h1 { font-size: clamp(2.2rem, 8vw, 3rem); }
+        }
+
+        .hero-h1-italic { color: var(--brown); font-style: italic; }
+
+        .gold-underline-wrap { position: relative; display: inline-block; }
+        .gold-underline {
+          position: absolute; bottom: 4px; left: 0; right: 0;
+          height: 3px;
+          background: linear-gradient(90deg, var(--gold), var(--cream-2));
+          transform-origin: right;
+          transition: transform 0.8s cubic-bezier(.4,0,.2,1) 600ms;
+        }
+
+        .hero-tagline {
+          font-size: clamp(0.95rem, 1.8vw, 1.3rem);
+          font-weight: 300; color: var(--text-muted);
+          letter-spacing: 0.04em; margin-top: 14px; margin-bottom: 10px;
+        }
+
+        .hero-body {
+          font-size: 13px; line-height: 1.9;
+          color: var(--text-muted); max-width: 400px; margin-bottom: 32px;
+        }
+
+        @media (max-width: 768px) {
+          .hero-body { max-width: 100%; font-size: 13px; }
+        }
+
+        /* CTA */
+        .cta-row {
+          display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+        }
+
+        .btn-primary {
+          position: relative; overflow: hidden; isolation: isolate;
+          background: var(--brown); color: #fff;
+          font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+          padding: 13px 32px; border: none; cursor: pointer;
+          font-family: var(--sans); font-weight: 500;
+          display: flex; align-items: center; gap: 8px;
+          transition: color 0.35s;
+        }
+        .btn-primary::after {
           content: ''; position: absolute; inset: 0;
-          background: #C9A24A; transform: translateX(-101%);
-          transition: transform 0.38s cubic-bezier(.4,0,.2,1); z-index: 0;
+          background: var(--gold); transform: translateX(-101%);
+          transition: transform 0.35s cubic-bezier(.4,0,.2,1); z-index: 0;
         }
-        .btn-sweep:hover::after { transform: translateX(0); }
-        .btn-sweep > * { position: relative; z-index: 1; }
+        .btn-primary:hover::after { transform: translateX(0); }
+        .btn-primary > * { position: relative; z-index: 1; }
 
-        /* outline btn hover */
-        .btn-outline-gold {
+        .btn-secondary {
+          background: transparent; color: var(--brown);
+          font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+          padding: 13px 24px; cursor: pointer;
+          font-family: var(--sans); font-weight: 500;
+          border: 1px solid rgba(201,162,74,0.45);
+          display: flex; align-items: center; gap: 8px;
+          transition: background 0.3s, color 0.3s, border-color 0.3s;
+        }
+        .btn-secondary:hover {
+          background: var(--gold); color: #fff; border-color: var(--gold);
+        }
+
+        /* Stats */
+        .stats-row {
+          display: flex; gap: 28px; flex-wrap: wrap;
+          margin-top: 40px; padding-top: 24px;
+          border-top: 1px solid var(--cream-2);
+        }
+
+        @media (max-width: 480px) {
+          .stats-row { gap: 20px; justify-content: space-between; }
+        }
+
+        .stat-item { display: flex; flex-direction: column; gap: 3px; }
+        .stat-num {
+          font-family: var(--serif);
+          font-size: clamp(1.6rem, 3vw, 2.4rem);
+          font-weight: 700; color: var(--gold); line-height: 1;
+        }
+        .stat-label { font-size: 12px; color: var(--cream-2); font-weight: 500; }
+        .stat-sub {
+          font-size: 9px; letter-spacing: 0.18em;
+          text-transform: uppercase; color: var(--gold-muted);
+        }
+
+        /* ── RIGHT PANEL ── */
+        .hero-right {
+          position: relative; z-index: 2;
+          min-height: 340px; overflow: hidden;
+          display: flex; align-items: stretch;
+        }
+
+        @media (max-width: 768px) {
+          .hero-right { min-height: 260px; }
+        }
+
+        .hero-right-slider { position: absolute; inset: 0; }
+        .hero-right-overlay {
+          position: absolute; inset: 0; pointer-events: none;
+          background: linear-gradient(135deg, rgba(90,52,26,0.22) 0%, transparent 55%);
+        }
+
+        /* Spinning ring */
+        @keyframes spinRing { to { transform: rotate(360deg); } }
+        .spin-ring {
+          position: absolute; top: 16px; right: 16px;
+          width: 72px; height: 72px;
           border: 1px solid rgba(201,162,74,0.5);
-          transition: border-color 0.3s, background 0.3s, color 0.3s;
+          border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          animation: spinRing 22s linear infinite;
+          pointer-events: none;
         }
-        .btn-outline-gold:hover {
-          border-color: #C9A24A; background: #C9A24A; color: #fff;
-        }
-
-        /* category card */
-        .cat-card {
-          transition: transform 0.3s cubic-bezier(.4,0,.2,1), box-shadow 0.3s, background 0.3s;
-        }
-        .cat-card:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 18px 48px rgba(43,26,18,0.18);
-          background: rgba(201,162,74,0.12) !important;
+        .spin-ring-text {
+          font-family: var(--serif); font-style: italic;
+          font-size: 10px; color: var(--gold); letter-spacing: 0.05em;
         }
 
-        /* scrollbar */
-        ::-webkit-scrollbar { width:4px; }
-        ::-webkit-scrollbar-track { background:#F5F1EA; }
-        ::-webkit-scrollbar-thumb { background:#C9A24A55; border-radius:2px; }
-
-        /* diagonal divider shape */
-        .diagonal-cut {
-          clip-path: polygon(0 0, 100% 0, 100% 88%, 0 100%);
+        /* Float card */
+        @keyframes floatCard {
+          0%,100% { transform: translateY(0); }
+          50% { transform: translateY(-6px); }
+        }
+        .float-card {
+          position: absolute; bottom: 24px; left: 16px;
+          background: rgba(255,255,255,0.95);
+          backdrop-filter: blur(10px);
+          border-right: 3px solid var(--gold);
+          padding: 12px 16px; max-width: 200px;
+          animation: floatCard 4s ease-in-out infinite;
+          pointer-events: none;
         }
 
-        /* marquee */
-        @keyframes marquee { from { transform:translateX(0); } to { transform:translateX(-50%); } }
-        .marquee-track { animation: marquee 18s linear infinite; will-change: transform; }
+        @media (max-width: 768px) {
+          .float-card { max-width: 160px; padding: 10px 12px; }
+        }
+
+        .float-card-eyebrow {
+          font-size: 8px; letter-spacing: 0.22em;
+          text-transform: uppercase; color: var(--gold); margin-bottom: 4px;
+        }
+        .float-card-title {
+          font-family: var(--serif); font-size: 13px;
+          color: var(--dark); line-height: 1.4;
+        }
+
+        /* Corner accents */
+        .corner { position: absolute; width: 40px; height: 40px; pointer-events: none; }
+        .corner-br { bottom: 16px; right: 16px;
+          border-bottom: 1.5px solid rgba(201,162,74,0.6);
+          border-right: 1.5px solid rgba(201,162,74,0.6); }
+        .corner-tl { top: 16px; left: 16px;
+          border-top: 1.5px solid rgba(201,162,74,0.6);
+          border-left: 1.5px solid rgba(201,162,74,0.6); }
+
+        /* Counter pill */
+        .img-counter {
+          position: absolute; bottom: 24px; right: 16px;
+          background: rgba(43,26,18,0.7); backdrop-filter: blur(6px);
+          padding: 3px 10px; font-size: 9px;
+          letter-spacing: 0.12em; color: rgba(239,232,221,0.8);
+          pointer-events: none;
+        }
+
+        /* ── MARQUEE ── */
+        @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+        .marquee-outer {
+          background: var(--gold); overflow: hidden;
+          padding: 9px 0;
+          border-top: 1px solid rgba(201,162,74,0.3);
+        }
+        .marquee-track {
+          display: flex; width: max-content;
+          animation: marquee 20s linear infinite;
+          will-change: transform;
+        }
         .marquee-track:hover { animation-play-state: paused; }
+        .marquee-item {
+          display: flex; align-items: center; gap: 7px;
+          padding: 0 24px; white-space: nowrap;
+          font-size: 9px; letter-spacing: 0.22em;
+          text-transform: uppercase; color: var(--dark);
+          font-weight: 700;
+        }
+
+        /* ── CATEGORIES ── */
+        .cat-section {
+          background: var(--dark);
+          padding: clamp(24px,4vw,44px) clamp(16px,4vw,44px);
+        }
+
+        .cat-grid {
+          max-width: 1200px; margin: 0 auto;
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 2px;
+          background: var(--gold-light);
+        }
+
+        @media (max-width: 600px) {
+          .cat-grid { grid-template-columns: 1fr; gap: 2px; }
+          .cat-card { border-right: none !important; border-bottom: 1px solid rgba(201,162,74,0.15); }
+          .cat-card:last-child { border-bottom: none; }
+        }
+
+        .cat-card {
+          position: relative; overflow: hidden;
+          padding: 28px 24px; cursor: pointer;
+          display: flex; flex-direction: column; gap: 14px;
+          transition: transform 0.3s cubic-bezier(.4,0,.2,1),
+                      background 0.3s, box-shadow 0.3s;
+          -webkit-tap-highlight-color: transparent;
+        }
+        .cat-card:hover, .cat-card:focus-visible {
+          background: rgba(201,162,74,0.1);
+          box-shadow: 0 16px 40px rgba(43,26,18,0.2);
+        }
+        .cat-card:active { transform: scale(0.98); }
+
+        @media (hover: hover) {
+          .cat-card:hover { transform: translateY(-4px); }
+        }
+
+        .cat-num {
+          position: absolute; top: 14px; left: 14px;
+          font-family: var(--serif); font-size: 10px;
+          color: rgba(201,162,74,0.3); letter-spacing: 0.1em;
+        }
+
+        .cat-icon-box {
+          width: 48px; height: 48px;
+          border: 1px solid rgba(201,162,74,0.3);
+          display: flex; align-items: center; justify-content: center;
+          margin-top: 6px; color: var(--gold);
+          transition: background 0.3s, border-color 0.3s;
+        }
+        .cat-card:hover .cat-icon-box {
+          background: rgba(201,162,74,0.12);
+          border-color: rgba(201,162,74,0.6);
+        }
+
+        .cat-name {
+          font-size: 12px; letter-spacing: 0.18em;
+          text-transform: uppercase; color: var(--cream-2);
+          font-weight: 600;
+        }
+        .cat-count { font-size: 10px; color: var(--gold); letter-spacing: 0.08em; margin-top: 3px; }
+
+        .cat-cta {
+          display: flex; align-items: center; gap: 5px; margin-top: 2px;
+          font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase;
+          color: rgba(201,162,74,0.5);
+          transition: color 0.2s, gap 0.2s;
+        }
+        .cat-card:hover .cat-cta { color: var(--gold); gap: 8px; }
+
+        /* ── TOUCH FEEDBACK ── */
+        @media (hover: none) {
+          .cat-card:active { background: rgba(201,162,74,0.1); }
+          .btn-primary:active::after { transform: translateX(0); }
+          .btn-secondary:active { background: var(--gold); color: #fff; }
+        }
+
+        /* ── FOCUS VISIBLE ── */
+        .btn-primary:focus-visible,
+        .btn-secondary:focus-visible,
+        .cat-card:focus-visible {
+          outline: 2px solid var(--gold);
+          outline-offset: 2px;
+        }
       `}</style>
 
-      <div
-        className="hero-root"
-        style={{
-          fontFamily: "'Tajawal',sans-serif",
-          background: "#F5F1EA",
-          color: "#2B1A12",
-          overflowX: "hidden",
-        }}
-      >
+      <div className="hr">
         <Header />
 
-        {/* ═══════════════════════════════════════════════════
-            HERO SECTION
-        ═══════════════════════════════════════════════════ */}
-        <section
-          className="hero-grain"
-          style={{
-            position: "relative",
-            minHeight: "calc(100vh - 68px)",
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            overflow: "hidden",
-          }}
-        >
-          {/* Dot texture */}
-          <div
-            className="dot-bg"
-            style={{
-              position: "absolute",
-              inset: 0,
-              opacity: 0.4,
-              pointerEvents: "none",
-              zIndex: 1,
-            }}
-          />
+        {/* ══ HERO ══════════════════════════════════════════════ */}
+        <section className="hero-section">
+          <div className="dot-bg" />
+          <div className="hero-glow" />
 
-          {/* Warm ambient glow */}
-          <div
-            style={{
-              position: "absolute",
-              top: "-15%",
-              right: "10%",
-              width: "55vw",
-              height: "55vw",
-              maxWidth: 700,
-              background:
-                "radial-gradient(circle, rgba(201,162,74,0.1) 0%, transparent 70%)",
-              borderRadius: "50%",
-              pointerEvents: "none",
-              zIndex: 1,
-            }}
-          />
-
-          {/* ── LEFT PANEL ──────────────────────────────── */}
-          <div
-            style={{
-              position: "relative",
-              zIndex: 2,
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              padding: "clamp(40px,7vw,96px) clamp(24px,5vw,72px)",
-              minHeight: "100%",
-            }}
-          >
-            {/* Eyebrow */}
-            <div
-              style={{
-                ...up(0),
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                marginBottom: 28,
-              }}
-            >
-              <div style={{ width: 36, height: 1, background: "#C9A24A" }} />
-              <span
-                style={{
-                  fontSize: 10,
-                  letterSpacing: "0.32em",
-                  textTransform: "uppercase",
-                  color: "#C9A24A",
-                  fontWeight: 500,
-                }}
-              >
+          {/* Left */}
+          <div className="hero-left">
+            <div style={up(0)} className="eyebrow">
+              <div className="eyebrow-line" />
+              <span className="eyebrow-text">
                 Est. 2005 · Premium Furniture
               </span>
-              <div style={{ width: 36, height: 1, background: "#C9A24A" }} />
+              <div className="eyebrow-line" />
             </div>
 
-            {/* Main heading — large, editorial */}
-            <h1
-              style={{
-                ...up(120),
-                fontFamily: "'Playfair Display',serif",
-                fontSize: "clamp(2.8rem,6vw,5.2rem)",
-                fontWeight: 800,
-                lineHeight: 1.08,
-                color: "#2B1A12",
-                marginBottom: 0,
-                letterSpacing: "-0.02em",
-              }}
-            >
-              مصممة <br />
-              <em style={{ color: "#5A341A", fontStyle: "italic" }}>
-                تعيش
-              </em>{" "}
-              <span style={{ position: "relative", display: "inline-block" }}>
+            <h1 style={up(120)} className="hero-h1">
+              مصممة <em className="hero-h1-italic">تعيش</em>{" "}
+              <span className="gold-underline-wrap">
                 سنين
-                {/* gold underline accent */}
                 <span
+                  className="gold-underline"
                   style={{
-                    position: "absolute",
-                    bottom: 4,
-                    left: 0,
-                    right: 0,
-                    height: 3,
-                    background: "linear-gradient(90deg,#C9A24A,#EFE8DD)",
                     transform: vis ? "scaleX(1)" : "scaleX(0)",
-                    transformOrigin: "left",
-                    transition: "transform 0.8s cubic-bezier(.4,0,.2,1) 600ms",
                   }}
                 />
               </span>
             </h1>
 
-            {/* Sub-headline */}
-            <p
-              style={{
-                ...up(220),
-                fontSize: "clamp(1rem,2vw,1.4rem)",
-                fontWeight: 300,
-                color: "#7A5A3A",
-                letterSpacing: "0.04em",
-                marginTop: 16,
-                marginBottom: 12,
-                direction: "rtl",
-              }}
-            >
+            <p style={up(220)} className="hero-tagline">
               فخامة تعيش معاك سنين
             </p>
 
-            {/* Body copy */}
-            <p
-              style={{
-                ...up(300),
-                fontSize: 14,
-                lineHeight: 1.9,
-                color: "#7A5A3A",
-                maxWidth: 420,
-                marginBottom: 36,
-              }}
-            >
+            <p style={up(300)} className="hero-body">
               كل قطعة في مجموعتنا شهادة على براعة الحرفيين وإتقانهم — خشب مختار،
               جلد أصيل، وتصميم يتحدى الزمن.
             </p>
 
-            {/* CTA row */}
-            <div
-              style={{
-                ...up(420),
-                display: "flex",
-                alignItems: "center",
-                gap: 14,
-                flexWrap: "wrap",
-              }}
-            >
-              {/* Primary */}
+            <div style={up(400)} className="cta-row">
               <button
                 onClick={() => navigate("/products")}
-                className="btn-sweep"
-                style={{
-                  background: "#5A341A",
-                  color: "#fff",
-                  fontSize: 12,
-                  letterSpacing: "0.16em",
-                  textTransform: "uppercase",
-                  padding: "14px 36px",
-                  border: "none",
-                  cursor: "pointer",
-                  fontFamily: "'Tajawal',sans-serif",
-                  fontWeight: 500,
-                }}
+                className="btn-primary"
+                aria-label="اكتشف المجموعة"
               >
                 <span>اكتشف المجموعة</span>
+                <ArrowLeft size={13} />
               </button>
-
-              {/* Secondary */}
               <button
                 onClick={() => navigate("/products")}
-                className="btn-outline-gold"
-                style={{
-                  background: "transparent",
-                  color: "#5A341A",
-                  fontSize: 12,
-                  letterSpacing: "0.16em",
-                  textTransform: "uppercase",
-                  padding: "14px 28px",
-                  cursor: "pointer",
-                  fontFamily: "'Tajawal',sans-serif",
-                  fontWeight: 500,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                }}
+                className="btn-secondary"
+                aria-label="تصفح المنتجات"
               >
                 تصفح المنتجات
-                <svg
-                  width="13"
-                  height="13"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                >
-                  <path d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
+                <ArrowRight size={13} />
               </button>
             </div>
 
-            {/* Stats row */}
-            <div
-              style={{
-                ...up(540),
-                display: "flex",
-                gap: 32,
-                marginTop: 44,
-                paddingTop: 28,
-                borderTop: "1px solid #EFE8DD",
-                flexWrap: "wrap",
-              }}
-            >
+            <div ref={statsRef} style={up(520)} className="stats-row">
               {STATS.map((s, i) => (
                 <StatItem key={i} {...s} active={statsOn} />
               ))}
             </div>
           </div>
 
-          {/* ── RIGHT PANEL ─────────────────────────────── */}
-          <div
-            style={{
-              position: "relative",
-              zIndex: 2,
-              minHeight: 360,
-              overflow: "hidden",
-              display: "flex",
-              alignItems: "stretch",
-            }}
-          >
-            {/* Slider fills the whole right panel */}
-            <div style={{ position: "absolute", inset: 0 }}>
+          {/* Right */}
+          <div className="hero-right">
+            <div className="hero-right-slider">
               <Slider />
             </div>
+            <div className="hero-right-overlay" />
 
-            {/* Dark vignette overlay */}
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                background:
-                  "linear-gradient(135deg, rgba(90,52,26,0.25) 0%, transparent 55%)",
-                pointerEvents: "none",
-              }}
-            />
-
-            {/* Spinning ring badge — top-right */}
-            <div
-              className="spin-ring"
-              style={{
-                position: "absolute",
-                top: 20,
-                right: 20,
-                width: 80,
-                height: 80,
-                border: "1px solid rgba(201,162,74,0.55)",
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <span
-                style={{
-                  fontFamily: "'Playfair Display',serif",
-                  fontStyle: "italic",
-                  fontSize: 11,
-                  color: "#C9A24A",
-                  letterSpacing: "0.05em",
-                }}
-              >
-                الفخامة
-              </span>
+            <div className="spin-ring">
+              <span className="spin-ring-text">الفخامة</span>
             </div>
 
-            {/* Floating info card — bottom-left */}
-            <div
-              className="float-card"
-              style={{
-                position: "absolute",
-                bottom: 28,
-                left: 20,
-                background: "rgba(255,255,255,0.95)",
-                backdropFilter: "blur(12px)",
-                borderLeft: "3px solid #C9A24A",
-                padding: "14px 18px",
-                maxWidth: 220,
-                boxShadow: "0 20px 60px rgba(43,26,18,0.2)",
-              }}
-            >
-              <p
-                style={{
-                  fontSize: 9,
-                  letterSpacing: "0.22em",
-                  textTransform: "uppercase",
-                  color: "#C9A24A",
-                  marginBottom: 5,
-                }}
-              >
-                أحدث قطع 2026
-              </p>
-              <p
-                style={{
-                  fontFamily: "'Playfair Display',serif",
-                  fontSize: 14,
-                  color: "#2B1A12",
-                  lineHeight: 1.5,
-                }}
-              >
-                الأفضل في القطع لمنزلك
-              </p>
+            <div className="float-card">
+              <p className="float-card-eyebrow">أحدث قطع 2026</p>
+              <p className="float-card-title">الأفضل في القطع لمنزلك</p>
             </div>
 
-            {/* Gold corner accents */}
-            <div
-              style={{
-                position: "absolute",
-                bottom: 20,
-                right: 20,
-                width: 48,
-                height: 48,
-                borderBottom: "2px solid rgba(201,162,74,0.65)",
-                borderRight: "2px solid rgba(201,162,74,0.65)",
-                pointerEvents: "none",
-              }}
-            />
-            <div
-              style={{
-                position: "absolute",
-                top: 20,
-                left: 20,
-                width: 48,
-                height: 48,
-                borderTop: "2px solid rgba(201,162,74,0.65)",
-                borderLeft: "2px solid rgba(201,162,74,0.65)",
-                pointerEvents: "none",
-              }}
-            />
+            <div className="corner corner-br" />
+            <div className="corner corner-tl" />
 
-            {/* Image counter pill (decorative) */}
-            <div
-              style={{
-                position: "absolute",
-                bottom: 28,
-                right: 20,
-                background: "rgba(43,26,18,0.7)",
-                backdropFilter: "blur(6px)",
-                padding: "4px 12px",
-                fontSize: 10,
-                letterSpacing: "0.12em",
-                color: "rgba(239,232,221,0.8)",
-              }}
-            >
-              01 / 04
+            <div className="img-counter">
+              
             </div>
           </div>
         </section>
 
-        {/* ═══════════════════════════════════════════════════
-            MARQUEE STRIP
-        ═══════════════════════════════════════════════════ */}
-        <div
-          style={{
-            background: "#C9A24A",
-            overflow: "hidden",
-            padding: "10px 0",
-            borderTop: "1px solid rgba(201,162,74,0.3)",
-          }}
-        >
-          <div
-            className="marquee-track"
-            style={{
-              display: "flex",
-              gap: 0,
-              width: "max-content",
-            }}
-          >
+        {/* ══ MARQUEE ═══════════════════════════════════════════ */}
+        <div className="marquee-outer" role="marquee" aria-label="مميزاتنا">
+          <div className="marquee-track">
             {[...Array(2)].map((_, rep) =>
-              [
-                "صناعة يدوية ✦",
-                "خشب صلب ✦",
-                "جلد إيطالي ✦",
-                "تصميم مصري ✦",
-                "ضمان 3 سنوات ✦",
-                "توصيل مجاني ✦",
-                "تخصيص حسب الطلب ✦",
-              ].map((t, i) => (
-                <span
-                  key={`${rep}-${i}`}
-                  style={{
-                    fontSize: 10,
-                    letterSpacing: "0.22em",
-                    textTransform: "uppercase",
-                    color: "#2B1A12",
-                    fontWeight: 700,
-                    padding: "0 28px",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {t}
+              MARQUEE_ITEMS.map(({ Icon, text }, i) => (
+                <span key={`${rep}-${i}`} className="marquee-item">
+                  <Icon size={11} aria-hidden="true" />
+                  {text}
                 </span>
               )),
             )}
           </div>
         </div>
 
-        {/* ═══════════════════════════════════════════════════
-            CATEGORY STRIP
-        ═══════════════════════════════════════════════════ */}
-        <section
-          ref={statsRef}
-          style={{
-            background: "#2B1A12",
-            padding: "clamp(28px,4vw,48px) clamp(16px,4vw,48px)",
-          }}
-        >
-          <div
-            style={{
-              maxWidth: 1200,
-              margin: "0 auto",
-              display: "grid",
-              gridTemplateColumns:
-                "repeat(auto-fit, minmax(min(100%,200px), 1fr))",
-              gap: 2,
-              background: "rgba(201,162,74,0.1)",
-            }}
-          >
-            {CATEGORIES.map((cat, i) => (
+        {/* ══ CATEGORIES ════════════════════════════════════════ */}
+        <section className="cat-section">
+          <div className="cat-grid">
+            {CATEGORIES.map(({ Icon, name, count, href }, i) => (
               <div
-                key={cat.name}
+                key={name}
                 className="cat-card"
-                onClick={() => navigate(cat.href)}
+                onClick={() => navigate(href)}
+                role="button"
+                tabIndex={0}
+                aria-label={`تصفح ${name}`}
+                onKeyDown={(e) => e.key === "Enter" && navigate(href)}
                 style={{
-                  background: "transparent",
-                  padding: "32px 28px",
-                  cursor: "pointer",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 16,
                   borderRight:
                     i < CATEGORIES.length - 1
                       ? "1px solid rgba(201,162,74,0.15)"
                       : "none",
-                  position: "relative",
-                  overflow: "hidden",
                 }}
               >
-                {/* Number label */}
-                <span
-                  style={{
-                    position: "absolute",
-                    top: 16,
-                    left: 16,
-                    fontFamily: "'Playfair Display',serif",
-                    fontSize: 11,
-                    color: "rgba(201,162,74,0.35)",
-                    letterSpacing: "0.1em",
-                  }}
-                >
-                  0{i + 1}
-                </span>
+                <span className="cat-num">0{i + 1}</span>
 
-                {/* Icon area */}
-                <div
-                  style={{
-                    width: 52,
-                    height: 52,
-                    border: "1px solid rgba(201,162,74,0.3)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 22,
-                    marginTop: 8,
-                  }}
-                >
-                  {cat.emoji}
+                <div className="cat-icon-box">
+                  <Icon size={20} aria-hidden="true" />
                 </div>
 
                 <div>
-                  <p
-                    style={{
-                      fontSize: 13,
-                      letterSpacing: "0.18em",
-                      textTransform: "uppercase",
-                      color: "#EFE8DD",
-                      fontWeight: 600,
-                      marginBottom: 4,
-                    }}
-                  >
-                    {cat.name}
-                  </p>
-                  <p
-                    style={{
-                      fontSize: 11,
-                      color: "#C9A24A",
-                      letterSpacing: "0.08em",
-                    }}
-                  >
-                    {cat.count}
-                  </p>
+                  <p className="cat-name">{name}</p>
+                  <p className="cat-count">{count}</p>
                 </div>
 
-                {/* Hover arrow */}
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    fontSize: 10,
-                    letterSpacing: "0.15em",
-                    textTransform: "uppercase",
-                    color: "rgba(201,162,74,0.5)",
-                    marginTop: 4,
-                    transition: "color 0.2s",
-                  }}
-                >
+                <div className="cat-cta">
                   تصفح
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M5 12h14M12 5l7 7-7 7" />
-                  </svg>
+                  <ChevronRight size={11} aria-hidden="true" />
                 </div>
               </div>
             ))}
