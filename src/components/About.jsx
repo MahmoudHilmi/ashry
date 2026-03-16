@@ -146,19 +146,19 @@ function AboutPage({ onNavigate }) {
 
   const team = [
     {
-      name: "أحمد الأشري",
+      name: "أحمد العشري",
       role: "المؤسس والمدير الإبداعي",
       img: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80",
       quote: "الأثاث ليس سلعة، هو جزء من هوية البيت.",
     },
     {
-      name: "سارة منصور",
+      name: "صديق العشري",
       role: "مديرة التصميم الداخلي",
       img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80",
       quote: "كل غرفة تحكي قصة صاحبها — مهمتنا أن نجعلها قصة جميلة.",
     },
     {
-      name: "خالد الجمال",
+      name: "محمد المحمدي",
       role: "كبير الحرفيين",
       img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80",
       quote: "أربعون عاماً وما زلت أتعلم من كل قطعة خشب.",
@@ -323,7 +323,7 @@ function AboutPage({ onNavigate }) {
                 }}
               >
                 <img
-                  src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=700&q=80"
+                  src="https://res.cloudinary.com/dchhjoguv/image/upload/v1773509309/2_bwcnzg.png"
                   alt=""
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
@@ -340,7 +340,7 @@ function AboutPage({ onNavigate }) {
                 }}
               >
                 <img
-                  src="https://drive.google.com/file/d/1xwpe3zjFrcYiqj4kh_7IDACHK-g2iGz7/view?usp=drive_link"
+                  src="https://res.cloudinary.com/dchhjoguv/image/upload/v1773509299/5_riufkz.png"
                   alt=""
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
@@ -482,7 +482,7 @@ function AboutPage({ onNavigate }) {
                 }}
               >
                 <img
-                  src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=700&q=80"
+                  src="https://res.cloudinary.com/dchhjoguv/image/upload/v1773509162/7_rrcavp.png"
                   alt="Our workshop"
                   style={{
                     position: "absolute",
@@ -606,7 +606,7 @@ function AboutPage({ onNavigate }) {
                     marginBottom: 16,
                   }}
                 >
-                  اليوم، وبعد عشرين عاماً، أصبح الأشري أكثر من مجرد مصنع أثاث.
+                  اليوم، وبعد عشرين عاماً، أصبح العشري أكثر من مجرد مصنع أثاث.
                   نحن ورشة إبداع تُوظّف ثلاثين حرفياً يؤمنون أن كل قطعة تُصنع هي
                   وعد لعائلة ستعيش معها سنوات طويلة.
                 </p>
@@ -643,7 +643,7 @@ function AboutPage({ onNavigate }) {
                     direction: "rtl",
                   }}
                 >
-                  — أحمد الأشري، المؤسس
+                  — أحمد العشري، المؤسس
                 </p>
               </div>
             </div>
@@ -1028,7 +1028,7 @@ function AboutPage({ onNavigate }) {
       </div>
 
       {/* ── TEAM ── */}
-      <div style={{ background: "#fff", width: "100%" }}>
+      {/* <div style={{ background: "#fff", width: "100%" }}>
         <div
           style={{
             width: "100%",
@@ -1174,7 +1174,7 @@ function AboutPage({ onNavigate }) {
             ))}
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* ── WORKSHOP ── */}
       <div style={{ background: "#EFE8DD", width: "100%" }}>
@@ -1253,7 +1253,7 @@ function AboutPage({ onNavigate }) {
                   ["30", "حرفي متخصص"],
                   ["6", "أسابيع متوسط التصنيع"],
                   ["100%", "مواد طبيعية"],
-                  ["10", "سنوات ضمان"],
+                  ["3", "سنوات ضمان"],
                 ].map(([num, lab]) => (
                   <div
                     key={lab}
@@ -1289,10 +1289,10 @@ function AboutPage({ onNavigate }) {
               }}
             >
               {[
-                "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=500&q=80",
+                "https://res.cloudinary.com/dchhjoguv/image/upload/v1773509331/9_tiv79s.png",
                 "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?w=500&q=80",
-                "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=500&q=80",
-                "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=500&q=80",
+                "https://res.cloudinary.com/dchhjoguv/image/upload/v1773509270/6_xoevjf.png",
+                "https://res.cloudinary.com/dchhjoguv/image/upload/v1773509296/10_s56txp.png",
               ].map((src, i) => (
                 <div
                   key={i}
@@ -1445,7 +1445,7 @@ function AboutPage({ onNavigate }) {
           className="fp"
           style={{ fontStyle: "italic", color: "#C9A24A", fontSize: 14 }}
         >
-          Al Ashry Furniture · الأشري للأثاث
+          Al Ashry Furniture · العشري للأثاث
         </p>
         <p
           style={{

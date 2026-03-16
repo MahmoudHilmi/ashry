@@ -843,47 +843,61 @@ export default function ProductPage({ allProducts = MOCK_PRODUCTS }) {
                 border: "1px solid #EFE8DD",
               }}
             >
-              {product.details.map((d, i) => (
+              {Object.entries(product.details || {}).length === 0 ? (
                 <div
-                  key={i}
                   style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "16px 20px",
-                    borderBottom: "1px solid #EFE8DD",
+                    padding: "32px 20px",
+                    textAlign: "center",
+                    color: "#9A8A7A",
+                    fontSize: 13,
                     direction: "rtl",
-                    transition: "background 0.2s",
                   }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.background = "#F5F1EA")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.background = "transparent")
-                  }
                 >
-                  <span
-                    style={{
-                      fontSize: 10,
-                      letterSpacing: "0.2em",
-                      textTransform: "uppercase",
-                      color: "#C9A24A",
-                    }}
-                  >
-                    {d.label}
-                  </span>
-                  <span
-                    className="fp"
-                    style={{
-                      fontSize: "0.95rem",
-                      fontWeight: 500,
-                      color: "#2B1A12",
-                    }}
-                  >
-                    {d.value}
-                  </span>
+                  لا توجد تفاصيل إضافية
                 </div>
-              ))}
+              ) : (
+                Object.entries(product.details || {}).map(([key, value], i) => (
+                  <div
+                    key={i}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "16px 20px",
+                      borderBottom: "1px solid #EFE8DD",
+                      direction: "rtl",
+                      transition: "background 0.2s",
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.background = "#F5F1EA")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.background = "transparent")
+                    }
+                  >
+                    <span
+                      style={{
+                        fontSize: 10,
+                        letterSpacing: "0.2em",
+                        textTransform: "uppercase",
+                        color: "#C9A24A",
+                      }}
+                    >
+                      {key}
+                    </span>
+                    <span
+                      className="fp"
+                      style={{
+                        fontSize: "0.95rem",
+                        fontWeight: 500,
+                        color: "#2B1A12",
+                      }}
+                    >
+                      {value}
+                    </span>
+                  </div>
+                ))
+              )}
             </div>
           )}
         </div>
