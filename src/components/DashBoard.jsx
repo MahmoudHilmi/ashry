@@ -1,67 +1,142 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../supabaseClient.js";
 
 const ADMIN_PASSWORD = "ashry2025";
 
+// ─── STYLES ───────────────────────────────────────────────────────────────────
 const DashboardStyles = () => (
   <style>{`
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Tajawal:wght@300;400;500;700&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Tajawal', sans-serif; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes slideIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-    @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(5px)} }
-    .fade-in { animation: fadeIn 0.35s ease both; }
-    .slide-in { animation: slideIn 0.35s cubic-bezier(0.4,0,0.2,1) both; }
-    .spin { animation: spin 0.8s linear infinite; }
-    .shimmer-row { background: linear-gradient(90deg, #f0f0f0 25%, #f8f8f8 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 6px; }
-    .db-input { width: 100%; padding: 10px 14px; border: 1.5px solid #E8E0D5; border-radius: 8px; font-size: 13px; font-family: 'Tajawal', sans-serif; color: #2B1A12; background: #FDFAF6; outline: none; transition: border-color 0.2s, box-shadow 0.2s; direction: rtl; }
-    .db-input:focus { border-color: #C9A24A; box-shadow: 0 0 0 3px rgba(201,162,74,0.12); }
-    .db-input::placeholder { color: #B5A090; }
-    .db-btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-family: 'Tajawal', sans-serif; font-size: 13px; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; gap: 7px; }
-    .db-btn-primary { background: #5A341A; color: #fff; }
-    .db-btn-primary:hover { background: #7A4A28; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(90,52,26,0.25); }
-    .db-btn-danger { background: #fff; color: #C0392B; border: 1.5px solid #FADBD8; }
-    .db-btn-danger:hover { background: #FEF0EE; }
-    .db-btn-ghost { background: transparent; color: #7A5A3A; border: 1.5px solid #E8E0D5; }
-    .db-btn-ghost:hover { background: #F5F1EA; }
-    .db-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
-    .product-row { transition: background 0.15s; }
-    .product-row:hover { background: #FDFAF6; }
-    .tag-chip { display: inline-flex; align-items: center; gap: 5px; background: #F5F1EA; border: 1px solid #E8E0D5; border-radius: 20px; padding: 3px 10px 3px 6px; font-size: 11px; color: #5A341A; }
-    .tag-chip button { background: none; border: none; cursor: pointer; color: #999; font-size: 13px; line-height: 1; padding: 0; }
-    .tag-chip button:hover { color: #C0392B; }
-    .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: 10px; font-size: 13px; font-weight: 600; z-index: 9999; animation: fadeIn 0.3s ease; white-space: nowrap; }
-    .toast-success { background: #27AE60; color: #fff; }
-    .toast-error { background: #C0392B; color: #fff; }
-    .upload-zone { border: 2px dashed #E8E0D5; border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s; background: #FDFAF6; }
-    .upload-zone:hover { border-color: #C9A24A; background: #FFF8EE; }
-    .upload-zone.drag-over { border-color: #C9A24A; background: #FFF8EE; transform: scale(1.01); }
-    .img-thumb { position: relative; width: 80px; height: 80px; border-radius: 8px; overflow: hidden; border: 1px solid #E8E0D5; flex-shrink: 0; }
-    .img-thumb img { width: 100%; height: 100%; object-fit: cover; }
-    .img-thumb .remove-btn { position: absolute; top: 3px; right: 3px; width: 18px; height: 18px; background: rgba(192,57,43,0.85); color: #fff; border: none; border-radius: 50%; cursor: pointer; font-size: 11px; display: flex; align-items: center; justify-content: center; line-height: 1; }
-    .img-thumb .uploading-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; }
-    ::-webkit-scrollbar { width: 5px; }
-    ::-webkit-scrollbar-track { background: #F5F1EA; }
-    ::-webkit-scrollbar-thumb { background: #C9A24A55; border-radius: 3px; }
+
+    @keyframes fadeIn  { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes slideIn { from { opacity:0; transform:translateY(-12px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes spin    { to { transform:rotate(360deg); } }
+    @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+    @keyframes shake   { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(5px)} }
+
+    .fade-in   { animation: fadeIn  0.3s ease both; }
+    .slide-in  { animation: slideIn 0.3s cubic-bezier(0.4,0,0.2,1) both; }
+    .spin-anim { animation: spin    0.8s linear infinite; }
+    .shimmer   { background:linear-gradient(90deg,#f0f0f0 25%,#f8f8f8 50%,#f0f0f0 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:6px; }
+
+    .db-input {
+      width:100%; padding:10px 14px; border:1.5px solid #E8E0D5; border-radius:8px;
+      font-size:13px; font-family:'Tajawal',sans-serif; color:#2B1A12;
+      background:#FDFAF6; outline:none; transition:border-color .2s,box-shadow .2s; direction:rtl;
+    }
+    .db-input:focus { border-color:#C9A24A; box-shadow:0 0 0 3px rgba(201,162,74,.12); }
+    .db-input::placeholder { color:#B5A090; }
+
+    .db-btn {
+      padding:10px 20px; border:none; border-radius:8px; cursor:pointer;
+      font-family:'Tajawal',sans-serif; font-size:13px; font-weight:600;
+      transition:all .2s; display:inline-flex; align-items:center; gap:7px; white-space:nowrap;
+    }
+    .db-btn-primary { background:#5A341A; color:#fff; }
+    .db-btn-primary:hover:not(:disabled) { background:#7A4A28; transform:translateY(-1px); box-shadow:0 4px 16px rgba(90,52,26,.25); }
+    .db-btn-gold { background:#C9A24A; color:#fff; }
+    .db-btn-gold:hover:not(:disabled) { background:#B8912A; transform:translateY(-1px); }
+    .db-btn-danger { background:#fff; color:#C0392B; border:1.5px solid #FADBD8; }
+    .db-btn-danger:hover:not(:disabled) { background:#FEF0EE; }
+    .db-btn-ghost { background:transparent; color:#7A5A3A; border:1.5px solid #E8E0D5; }
+    .db-btn-ghost:hover:not(:disabled) { background:#F5F1EA; }
+    .db-btn:disabled { opacity:.5; cursor:not-allowed !important; transform:none !important; }
+
+    .tag-chip { display:inline-flex; align-items:center; gap:5px; background:#F5F1EA; border:1px solid #E8E0D5; border-radius:20px; padding:3px 10px 3px 6px; font-size:11px; color:#5A341A; }
+    .tag-chip .chip-remove { background:none; border:none; cursor:pointer; color:#999; font-size:14px; line-height:1; padding:0; display:flex; align-items:center; }
+    .tag-chip .chip-remove:hover { color:#C0392B; }
+
+    .upload-zone { border:2px dashed #E8E0D5; border-radius:10px; padding:24px 20px; text-align:center; cursor:pointer; transition:all .2s; background:#FDFAF6; user-select:none; }
+    .upload-zone:hover,.upload-zone.drag-over { border-color:#C9A24A; background:#FFF8EE; }
+
+    .img-thumb { position:relative; width:76px; height:76px; border-radius:8px; overflow:hidden; border:1px solid #E8E0D5; flex-shrink:0; }
+    .img-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+    .img-thumb .remove-btn { position:absolute; top:3px; right:3px; width:20px; height:20px; background:rgba(192,57,43,.88); color:#fff; border:none; border-radius:50%; cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center; line-height:1; }
+
+    .product-row { transition:background .15s; }
+    .product-row:hover { background:#FDFAF6; }
+
+    .toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%); padding:12px 24px; border-radius:10px; font-size:13px; font-weight:600; z-index:9999; animation:fadeIn .3s ease; white-space:nowrap; pointer-events:none; }
+    .toast-success { background:#27AE60; color:#fff; }
+    .toast-error   { background:#C0392B; color:#fff; }
+    .toast-info    { background:#2980B9; color:#fff; }
+
+    /* Responsive */
+    .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+    .form-grid  { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:16px; }
+    .desktop-table { display:block; }
+    .mobile-cards  { display:none; }
+
+    @media (max-width:900px) { .stats-grid { grid-template-columns:repeat(2,1fr); } }
+    @media (max-width:640px) {
+      .stats-grid { grid-template-columns:repeat(2,1fr); gap:8px; }
+      .form-grid  { grid-template-columns:1fr; }
+      .desktop-table { display:none !important; }
+      .mobile-cards  { display:flex !important; flex-direction:column; gap:10px; padding:12px; }
+      .header-wrap { flex-wrap:wrap; gap:10px; height:auto !important; padding:14px 16px !important; }
+      .header-actions { width:100%; display:flex; gap:8px; }
+      .header-actions .db-btn { flex:1; justify-content:center; }
+      .table-topbar { flex-direction:column !important; align-items:stretch !important; }
+      .table-topbar input { width:100% !important; }
+      .form-actions { flex-direction:column; }
+      .form-actions .db-btn { width:100%; justify-content:center; }
+    }
+
+    ::-webkit-scrollbar { width:5px; height:5px; }
+    ::-webkit-scrollbar-track { background:#F5F1EA; }
+    ::-webkit-scrollbar-thumb { background:#C9A24A55; border-radius:3px; }
   `}</style>
 );
+
+// ─── SPINNER ──────────────────────────────────────────────────────────────────
+const Spinner = ({ size = 16, color = "#fff" }) => (
+  <span
+    className="spin-anim"
+    style={{
+      display: "inline-block",
+      width: size,
+      height: size,
+      border: `2px solid ${color}`,
+      borderTopColor: "transparent",
+      borderRadius: "50%",
+      flexShrink: 0,
+    }}
+  />
+);
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+function Toast({ msg, type, onClose }) {
+  useEffect(() => {
+    const t = setTimeout(onClose, 3200);
+    return () => clearTimeout(t);
+  }, [onClose]);
+  return <div className={`toast toast-${type}`}>{msg}</div>;
+}
 
 // ─── LOGIN ────────────────────────────────────────────────────────────────────
 function LoginScreen({ onLogin }) {
   const [pass, setPass] = useState("");
-  const [error, setError] = useState(false);
+  const [error, setError] = useState("");
   const [shaking, setShaking] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
+    if (!pass.trim()) {
+      setError("أدخل كلمة المرور");
+      return;
+    }
+    setLoading(true);
+    await new Promise((r) => setTimeout(r, 400)); // simulate latency
     if (pass === ADMIN_PASSWORD) {
       onLogin();
     } else {
-      setError(true);
+      setError("كلمة المرور غلط ❌");
       setShaking(true);
       setTimeout(() => setShaking(false), 500);
     }
+    setLoading(false);
   };
 
   return (
@@ -72,30 +147,32 @@ function LoginScreen({ onLogin }) {
         alignItems: "center",
         justifyContent: "center",
         background: "#F7F3EE",
+        padding: 20,
       }}
     >
       <div
         style={{
           background: "#fff",
-          padding: 40,
-          borderRadius: 16,
+          padding: "clamp(24px,6vw,44px)",
+          borderRadius: 18,
           border: "1px solid #E8E0D5",
-          width: 360,
+          width: "100%",
+          maxWidth: 380,
           textAlign: "center",
-          boxShadow: "0 8px 40px rgba(90,52,26,0.1)",
-          animation: shaking ? "shake 0.4s ease" : "fadeIn 0.35s ease both",
+          boxShadow: "0 10px 48px rgba(90,52,26,.12)",
+          animation: shaking ? "shake .4s ease" : "fadeIn .35s ease both",
         }}
       >
         <div
           style={{
-            width: 56,
-            height: 56,
+            width: 58,
+            height: 58,
             background: "#2B1A12",
             borderRadius: 14,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            margin: "0 auto 20px",
+            margin: "0 auto 18px",
           }}
         >
           <svg width="26" height="26" viewBox="0 0 24 24" fill="#C9A24A">
@@ -104,23 +181,23 @@ function LoginScreen({ onLogin }) {
         </div>
         <p
           style={{
-            fontSize: 11,
-            letterSpacing: "0.25em",
+            fontSize: 10,
+            letterSpacing: ".28em",
             textTransform: "uppercase",
             color: "#C9A24A",
-            marginBottom: 6,
-            fontWeight: 600,
+            marginBottom: 5,
+            fontWeight: 700,
           }}
         >
           لوحة التحكم
         </p>
         <h1
           style={{
-            fontSize: 20,
+            fontSize: 21,
             fontWeight: 700,
             color: "#2B1A12",
-            marginBottom: 6,
-            fontFamily: "'Playfair Display', serif",
+            marginBottom: 5,
+            fontFamily: "'Playfair Display',serif",
             fontStyle: "italic",
           }}
         >
@@ -129,13 +206,17 @@ function LoginScreen({ onLogin }) {
         <p style={{ fontSize: 12, color: "#9A8A7A", marginBottom: 28 }}>
           أدخل كلمة المرور للمتابعة
         </p>
+
         <input
+          id="admin-pass"
+          name="admin-pass"
           type="password"
+          autoComplete="current-password"
           placeholder="كلمة المرور"
           value={pass}
           onChange={(e) => {
             setPass(e.target.value);
-            setError(false);
+            setError("");
           }}
           onKeyDown={(e) => e.key === "Enter" && handleLogin()}
           style={{
@@ -143,13 +224,14 @@ function LoginScreen({ onLogin }) {
             padding: "12px 16px",
             border: `1.5px solid ${error ? "#C0392B" : "#E8E0D5"}`,
             borderRadius: 10,
-            marginBottom: 8,
+            marginBottom: 6,
             fontSize: 14,
             outline: "none",
             direction: "rtl",
-            fontFamily: "'Tajawal', sans-serif",
+            fontFamily: "'Tajawal',sans-serif",
             background: "#FDFAF6",
             color: "#2B1A12",
+            transition: "border-color .2s",
           }}
         />
         {error && (
@@ -161,11 +243,13 @@ function LoginScreen({ onLogin }) {
               textAlign: "right",
             }}
           >
-            ❌ كلمة المرور غلط
+            {error}
           </p>
         )}
+
         <button
           onClick={handleLogin}
+          disabled={loading}
           style={{
             width: "100%",
             background: "#5A341A",
@@ -174,28 +258,27 @@ function LoginScreen({ onLogin }) {
             border: "none",
             borderRadius: 10,
             fontSize: 14,
-            cursor: "pointer",
+            cursor: loading ? "not-allowed" : "pointer",
             fontWeight: 700,
-            fontFamily: "'Tajawal', sans-serif",
+            fontFamily: "'Tajawal',sans-serif",
             marginTop: 4,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            opacity: loading ? 0.7 : 1,
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = "#7A4A28")}
+          onMouseEnter={(e) =>
+            !loading && (e.currentTarget.style.background = "#7A4A28")
+          }
           onMouseLeave={(e) => (e.currentTarget.style.background = "#5A341A")}
         >
-          دخول
+          {loading && <Spinner />}
+          {loading ? "جاري التحقق..." : "دخول"}
         </button>
       </div>
     </div>
   );
-}
-
-// ─── TOAST ────────────────────────────────────────────────────────────────────
-function Toast({ msg, type, onClose }) {
-  useEffect(() => {
-    const t = setTimeout(onClose, 3000);
-    return () => clearTimeout(t);
-  }, []);
-  return <div className={`toast toast-${type}`}>{msg}</div>;
 }
 
 // ─── IMAGE UPLOADER ───────────────────────────────────────────────────────────
@@ -205,53 +288,33 @@ function ImageUploader({ images, onChange }) {
   const inputRef = useRef(null);
 
   const uploadFile = async (file) => {
-    // Validate file type
     if (!file.type.startsWith("image/")) return null;
-
-    const ext = file.name.split(".").pop();
-    const fileName = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-
-    const { data, error } = await supabase.storage
+    const ext = file.name.split(".").pop().toLowerCase();
+    const safeName = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error } = await supabase.storage
       .from("products")
-      .upload(fileName, file, { cacheControl: "3600", upsert: false });
-
+      .upload(safeName, file, { cacheControl: "3600", upsert: false });
     if (error) {
-      console.error("Upload error:", error);
+      console.error("Upload error:", error.message);
       return null;
     }
-
-    const { data: urlData } = supabase.storage
-      .from("products")
-      .getPublicUrl(fileName);
-    return urlData.publicUrl;
+    const { data } = supabase.storage.from("products").getPublicUrl(safeName);
+    return data.publicUrl;
   };
 
   const handleFiles = async (files) => {
-    const fileArr = Array.from(files).filter((f) =>
-      f.type.startsWith("image/"),
-    );
-    if (!fileArr.length) return;
-
+    const valid = Array.from(files).filter((f) => f.type.startsWith("image/"));
+    if (!valid.length) return;
     setUploading(true);
-    const urls = await Promise.all(fileArr.map(uploadFile));
-    const validUrls = urls.filter(Boolean);
-    onChange([...images, ...validUrls]);
+    const urls = await Promise.all(valid.map(uploadFile));
+    onChange([...images, ...urls.filter(Boolean)]);
     setUploading(false);
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setDragOver(false);
-    handleFiles(e.dataTransfer.files);
-  };
-
-  const removeImage = (index) => {
-    onChange(images.filter((_, i) => i !== index));
   };
 
   return (
     <div>
       <label
+        htmlFor="img-upload"
         style={{
           display: "block",
           fontSize: 12,
@@ -264,8 +327,7 @@ function ImageUploader({ images, onChange }) {
         صور المنتج
       </label>
 
-      {/* Thumbnails */}
-      {images.length > 0 && (
+      {(images.length > 0 || uploading) && (
         <div
           style={{
             display: "flex",
@@ -275,9 +337,14 @@ function ImageUploader({ images, onChange }) {
           }}
         >
           {images.map((url, i) => (
-            <div key={i} className="img-thumb">
-              <img src={url} alt={`product-${i}`} />
-              <button className="remove-btn" onClick={() => removeImage(i)}>
+            <div key={`${url}-${i}`} className="img-thumb">
+              <img src={url} alt={`صورة ${i + 1}`} loading="lazy" />
+              <button
+                className="remove-btn"
+                type="button"
+                aria-label="حذف الصورة"
+                onClick={() => onChange(images.filter((_, idx) => idx !== i))}
+              >
                 ×
               </button>
             </div>
@@ -292,42 +359,42 @@ function ImageUploader({ images, onChange }) {
                 justifyContent: "center",
               }}
             >
-              <span
-                className="spin"
-                style={{
-                  display: "inline-block",
-                  width: 20,
-                  height: 20,
-                  border: "2px solid #C9A24A",
-                  borderTopColor: "transparent",
-                  borderRadius: "50%",
-                }}
-              />
+              <Spinner size={20} color="#C9A24A" />
             </div>
           )}
         </div>
       )}
 
-      {/* Upload Zone */}
       <div
-        className={`upload-zone ${dragOver ? "drag-over" : ""}`}
-        onClick={() => inputRef.current?.click()}
+        id="img-upload"
+        role="button"
+        tabIndex={0}
+        className={`upload-zone${dragOver ? " drag-over" : ""}`}
+        onClick={() => !uploading && inputRef.current?.click()}
+        onKeyDown={(e) =>
+          e.key === "Enter" && !uploading && inputRef.current?.click()
+        }
         onDragOver={(e) => {
           e.preventDefault();
           setDragOver(true);
         }}
         onDragLeave={() => setDragOver(false)}
-        onDrop={handleDrop}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragOver(false);
+          handleFiles(e.dataTransfer.files);
+        }}
       >
         <input
           ref={inputRef}
+          id="file-input"
+          name="file-input"
           type="file"
           accept="image/*"
           multiple
           style={{ display: "none" }}
           onChange={(e) => handleFiles(e.target.files)}
         />
-
         {uploading ? (
           <div
             style={{
@@ -338,21 +405,11 @@ function ImageUploader({ images, onChange }) {
               color: "#C9A24A",
             }}
           >
-            <span
-              className="spin"
-              style={{
-                display: "inline-block",
-                width: 18,
-                height: 18,
-                border: "2px solid #C9A24A",
-                borderTopColor: "transparent",
-                borderRadius: "50%",
-              }}
-            />
+            <Spinner size={18} color="#C9A24A" />
             <span style={{ fontSize: 13, fontWeight: 600 }}>جاري الرفع...</span>
           </div>
         ) : (
-          <div>
+          <>
             <div style={{ fontSize: 28, marginBottom: 8 }}>📸</div>
             <p
               style={{
@@ -365,9 +422,9 @@ function ImageUploader({ images, onChange }) {
               اضغط لرفع صورة أو اسحبها هنا
             </p>
             <p style={{ fontSize: 11, color: "#9A8A7A" }}>
-              PNG, JPG, WEBP — يمكن رفع أكثر من صورة
+              PNG · JPG · WEBP — يمكن رفع أكثر من صورة
             </p>
-          </div>
+          </>
         )}
       </div>
     </div>
@@ -375,17 +432,17 @@ function ImageUploader({ images, onChange }) {
 }
 
 // ─── TAG INPUT ────────────────────────────────────────────────────────────────
-function TagInput({ label, values, onChange, placeholder }) {
+function TagInput({ id, label, values, onChange, placeholder }) {
   const [input, setInput] = useState("");
   const add = () => {
     const v = input.trim();
     if (v && !values.includes(v)) onChange([...values, v]);
     setInput("");
   };
-  const remove = (i) => onChange(values.filter((_, idx) => idx !== i));
   return (
     <div>
       <label
+        htmlFor={id}
         style={{
           display: "block",
           fontSize: 12,
@@ -399,6 +456,8 @@ function TagInput({ label, values, onChange, placeholder }) {
       </label>
       <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
         <input
+          id={id}
+          name={id}
           className="db-input"
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -407,21 +466,32 @@ function TagInput({ label, values, onChange, placeholder }) {
           style={{ flex: 1 }}
         />
         <button
+          type="button"
           className="db-btn db-btn-ghost"
           onClick={add}
-          style={{ flexShrink: 0, padding: "10px 14px" }}
+          style={{ flexShrink: 0, padding: "10px 16px" }}
+          aria-label="إضافة"
         >
           +
         </button>
       </div>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-        {values.map((v, i) => (
-          <span key={i} className="tag-chip">
-            <button onClick={() => remove(i)}>×</button>
-            {v}
-          </span>
-        ))}
-      </div>
+      {values.length > 0 && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+          {values.map((v, i) => (
+            <span key={`${v}-${i}`} className="tag-chip">
+              <button
+                type="button"
+                className="chip-remove"
+                onClick={() => onChange(values.filter((_, idx) => idx !== i))}
+                aria-label={`حذف ${v}`}
+              >
+                ×
+              </button>
+              {v}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -441,12 +511,27 @@ const EMPTY_FORM = {
 };
 
 function ProductForm({ initial, onSave, onCancel, saving }) {
-  const [form, setForm] = useState(initial || EMPTY_FORM);
-  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+  const [form, setForm] = useState(() =>
+    initial
+      ? {
+          ...EMPTY_FORM,
+          ...initial,
+          images: Array.isArray(initial.images) ? initial.images : [],
+          materials: Array.isArray(initial.materials) ? initial.materials : [],
+        }
+      : { ...EMPTY_FORM },
+  );
+  const set = useCallback((k, v) => setForm((f) => ({ ...f, [k]: v })), []);
 
   const handleSubmit = () => {
-    if (!form.name && !form.nameAr) return alert("الاسم مطلوب");
-    if (!form.price) return alert("السعر مطلوب");
+    if (!form.nameAr && !form.name) {
+      alert("أدخل اسم المنتج (عربي أو إنجليزي)");
+      return;
+    }
+    if (!form.price || isNaN(Number(form.price)) || Number(form.price) <= 0) {
+      alert("أدخل سعراً صحيحاً");
+      return;
+    }
     onSave(form);
   };
 
@@ -457,32 +542,69 @@ function ProductForm({ initial, onSave, onCancel, saving }) {
         background: "#fff",
         border: "1px solid #E8E0D5",
         borderRadius: 14,
-        padding: 28,
+        padding: "clamp(16px,4vw,28px)",
         marginBottom: 24,
       }}
     >
-      <h2
-        style={{
-          fontSize: 18,
-          fontWeight: 700,
-          color: "#2B1A12",
-          marginBottom: 24,
-          direction: "rtl",
-          fontFamily: "'Playfair Display', serif",
-        }}
-      >
-        {initial?.id ? "تعديل المنتج" : "إضافة منتج جديد"}
-      </h2>
-
       <div
         style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: 16,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 22,
+          gap: 12,
+          flexWrap: "wrap",
         }}
       >
+        <h2
+          style={{
+            fontSize: 17,
+            fontWeight: 700,
+            color: "#2B1A12",
+            fontFamily: "'Playfair Display',serif",
+          }}
+        >
+          {initial?.id ? "✏️ تعديل المنتج" : "➕ إضافة منتج جديد"}
+        </h2>
+        <button
+          type="button"
+          className="db-btn db-btn-ghost"
+          onClick={onCancel}
+          style={{ fontSize: 12 }}
+        >
+          ✕ إغلاق
+        </button>
+      </div>
+
+      {/* Fields grid */}
+      <div className="form-grid">
         <div>
           <label
+            htmlFor="f-nameAr"
+            style={{
+              display: "block",
+              fontSize: 12,
+              fontWeight: 600,
+              color: "#5A341A",
+              marginBottom: 6,
+              direction: "rtl",
+            }}
+          >
+            الاسم بالعربي *
+          </label>
+          <input
+            id="f-nameAr"
+            name="nameAr"
+            className="db-input"
+            value={form.nameAr}
+            onChange={(e) => set("nameAr", e.target.value)}
+            placeholder="كرسي فاخر"
+            autoComplete="off"
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="f-name"
             style={{
               display: "block",
               fontSize: 12,
@@ -494,35 +616,19 @@ function ProductForm({ initial, onSave, onCancel, saving }) {
             الاسم بالإنجليزي
           </label>
           <input
+            id="f-name"
+            name="name"
             className="db-input"
             value={form.name}
             onChange={(e) => set("name", e.target.value)}
-            placeholder="Chair"
+            placeholder="Luxury Chair"
             style={{ direction: "ltr" }}
+            autoComplete="off"
           />
         </div>
         <div>
           <label
-            style={{
-              display: "block",
-              fontSize: 12,
-              fontWeight: 600,
-              color: "#5A341A",
-              marginBottom: 6,
-              direction: "rtl",
-            }}
-          >
-            الاسم بالعربي
-          </label>
-          <input
-            className="db-input"
-            value={form.nameAr}
-            onChange={(e) => set("nameAr", e.target.value)}
-            placeholder="كرسي"
-          />
-        </div>
-        <div>
-          <label
+            htmlFor="f-category"
             style={{
               display: "block",
               fontSize: 12,
@@ -535,14 +641,18 @@ function ProductForm({ initial, onSave, onCancel, saving }) {
             الفئة
           </label>
           <input
+            id="f-category"
+            name="category"
             className="db-input"
             value={form.category}
             onChange={(e) => set("category", e.target.value)}
             placeholder="كراسي"
+            autoComplete="off"
           />
         </div>
         <div>
           <label
+            htmlFor="f-price"
             style={{
               display: "block",
               fontSize: 12,
@@ -552,19 +662,24 @@ function ProductForm({ initial, onSave, onCancel, saving }) {
               direction: "rtl",
             }}
           >
-            السعر (EGP)
+            السعر (EGP) *
           </label>
           <input
-            className="db-input"
+            id="f-price"
+            name="price"
             type="number"
+            min="1"
+            className="db-input"
             value={form.price}
             onChange={(e) => set("price", e.target.value)}
             placeholder="5000"
             style={{ direction: "ltr" }}
+            autoComplete="off"
           />
         </div>
         <div>
           <label
+            htmlFor="f-badge"
             style={{
               display: "block",
               fontSize: 12,
@@ -577,6 +692,8 @@ function ProductForm({ initial, onSave, onCancel, saving }) {
             الشارة
           </label>
           <select
+            id="f-badge"
+            name="badge"
             className="db-input"
             value={form.badge}
             onChange={(e) => set("badge", e.target.value)}
@@ -594,30 +711,37 @@ function ProductForm({ initial, onSave, onCancel, saving }) {
             display: "flex",
             alignItems: "center",
             gap: 12,
-            paddingTop: 22,
+            paddingTop: 20,
           }}
         >
           <label
+            htmlFor="f-instock"
             style={{
               fontSize: 12,
               fontWeight: 600,
               color: "#5A341A",
-              direction: "rtl",
+              cursor: "pointer",
             }}
           >
             متوفر في المخزن؟
           </label>
           <div
+            id="f-instock"
+            role="switch"
+            aria-checked={form.inStock}
+            tabIndex={0}
             onClick={() => set("inStock", !form.inStock)}
+            onKeyDown={(e) => e.key === " " && set("inStock", !form.inStock)}
             style={{
               width: 44,
               height: 24,
               borderRadius: 12,
-              background: form.inStock ? "#27AE60" : "#E0D6CC",
+              background: form.inStock ? "#27AE60" : "#D0C8BE",
               cursor: "pointer",
               position: "relative",
-              transition: "background 0.2s",
+              transition: "background .2s",
               flexShrink: 0,
+              outline: "none",
             }}
           >
             <div
@@ -629,16 +753,27 @@ function ProductForm({ initial, onSave, onCancel, saving }) {
                 height: 18,
                 borderRadius: "50%",
                 background: "#fff",
-                transition: "left 0.2s",
-                boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
+                transition: "left .2s",
+                boxShadow: "0 1px 4px rgba(0,0,0,.18)",
               }}
             />
           </div>
+          <span
+            style={{
+              fontSize: 11,
+              color: form.inStock ? "#27AE60" : "#C0392B",
+              fontWeight: 600,
+            }}
+          >
+            {form.inStock ? "متوفر" : "غير متوفر"}
+          </span>
         </div>
       </div>
 
+      {/* Description */}
       <div style={{ marginTop: 16 }}>
         <label
+          htmlFor="f-desc"
           style={{
             display: "block",
             fontSize: 12,
@@ -651,6 +786,8 @@ function ProductForm({ initial, onSave, onCancel, saving }) {
           الوصف
         </label>
         <textarea
+          id="f-desc"
+          name="description"
           className="db-input"
           value={form.description}
           onChange={(e) => set("description", e.target.value)}
@@ -660,11 +797,11 @@ function ProductForm({ initial, onSave, onCancel, saving }) {
         />
       </div>
 
-      {/* Image Uploader + Materials */}
+      {/* Images + Materials */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))",
           gap: 20,
           marginTop: 20,
         }}
@@ -674,14 +811,17 @@ function ProductForm({ initial, onSave, onCancel, saving }) {
           onChange={(v) => set("images", v)}
         />
         <TagInput
+          id="f-materials"
           label="المواد"
           values={form.materials}
           onChange={(v) => set("materials", v)}
-          placeholder="خشب، قماش..."
+          placeholder="مثال: خشب زان"
         />
       </div>
 
+      {/* Actions */}
       <div
+        className="form-actions"
         style={{
           display: "flex",
           gap: 10,
@@ -689,29 +829,202 @@ function ProductForm({ initial, onSave, onCancel, saving }) {
           justifyContent: "flex-end",
         }}
       >
-        <button className="db-btn db-btn-ghost" onClick={onCancel}>
+        <button
+          type="button"
+          className="db-btn db-btn-ghost"
+          onClick={onCancel}
+          disabled={saving}
+        >
           إلغاء
         </button>
         <button
+          type="button"
           className="db-btn db-btn-primary"
           onClick={handleSubmit}
           disabled={saving}
         >
-          {saving && (
+          {saving && <Spinner />}
+          {saving
+            ? "جاري الحفظ..."
+            : initial?.id
+              ? "حفظ التعديلات"
+              : "إضافة المنتج"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── MOBILE PRODUCT CARD ─────────────────────────────────────────────────────
+function MobileCard({ p, onEdit, onDelete }) {
+  const imgs = Array.isArray(p.images) ? p.images : [];
+  return (
+    <div
+      className="fade-in"
+      style={{
+        background: "#fff",
+        border: "1px solid #E8E0D5",
+        borderRadius: 12,
+        padding: 14,
+        display: "flex",
+        gap: 12,
+      }}
+    >
+      {imgs[0] ? (
+        <img
+          src={imgs[0]}
+          alt={p.nameAr || p.name}
+          style={{
+            width: 64,
+            height: 64,
+            objectFit: "cover",
+            borderRadius: 8,
+            border: "1px solid #E8E0D5",
+            flexShrink: 0,
+          }}
+          loading="lazy"
+        />
+      ) : (
+        <div
+          style={{
+            width: 64,
+            height: 64,
+            background: "#F5F1EA",
+            borderRadius: 8,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 26,
+            flexShrink: 0,
+          }}
+        >
+          🪑
+        </div>
+      )}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginBottom: 4,
+          }}
+        >
+          <p
+            style={{
+              fontWeight: 700,
+              color: "#2B1A12",
+              fontSize: 14,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {p.nameAr || p.name || "—"}
+          </p>
+          <span
+            style={{
+              fontSize: 9,
+              color: "#9A8A7A",
+              flexShrink: 0,
+              marginRight: 4,
+            }}
+          >
+            #{p.id}
+          </span>
+        </div>
+        <div
+          style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 8 }}
+        >
+          {p.category && (
             <span
-              className="spin"
               style={{
-                display: "inline-block",
-                width: 14,
-                height: 14,
-                border: "2px solid #fff",
-                borderTopColor: "transparent",
+                background: "#F5F1EA",
+                border: "1px solid #E8E0D5",
+                borderRadius: 20,
+                padding: "2px 8px",
+                fontSize: 10,
+                color: "#5A341A",
+                fontWeight: 600,
+              }}
+            >
+              {p.category}
+            </span>
+          )}
+          {p.badge && (
+            <span
+              style={{
+                background: "#FFF8E8",
+                border: "1px solid #C9A24A44",
+                borderRadius: 20,
+                padding: "2px 8px",
+                fontSize: 10,
+                color: "#C9A24A",
+                fontWeight: 600,
+              }}
+            >
+              {p.badge}
+            </span>
+          )}
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+              fontSize: 10,
+              fontWeight: 600,
+              color: p.inStock ? "#27AE60" : "#C0392B",
+            }}
+          >
+            <span
+              style={{
+                width: 6,
+                height: 6,
                 borderRadius: "50%",
+                background: p.inStock ? "#27AE60" : "#C0392B",
+                flexShrink: 0,
               }}
             />
-          )}
-          {initial?.id ? "حفظ التعديلات" : "إضافة المنتج"}
-        </button>
+            {p.inStock ? "متوفر" : "نفذ"}
+          </span>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <p
+            style={{
+              fontWeight: 700,
+              color: "#5A341A",
+              fontSize: 14,
+              fontFamily: "'Playfair Display',serif",
+            }}
+          >
+            {Number(p.price).toLocaleString()} EGP
+          </p>
+          <div style={{ display: "flex", gap: 6 }}>
+            <button
+              type="button"
+              className="db-btn db-btn-ghost"
+              onClick={() => onEdit(p)}
+              style={{ padding: "5px 10px", fontSize: 11 }}
+              aria-label="تعديل"
+            >
+              ✏️
+            </button>
+            <button
+              type="button"
+              className="db-btn db-btn-danger"
+              onClick={() => onDelete(p.id)}
+              style={{ padding: "5px 10px", fontSize: 11 }}
+              aria-label="حذف"
+            >
+              🗑️
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -723,28 +1036,36 @@ export default function Dashboard() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [showForm, setShowForm] = useState(false);
+  const [formMode, setFormMode] = useState(null); // null | "new" | "edit"
   const [editProduct, setEditProduct] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
   const [toast, setToast] = useState(null);
   const [search, setSearch] = useState("");
 
-  const showToast = (msg, type = "success") => setToast({ msg, type });
+  const showToast = useCallback(
+    (msg, type = "success") => setToast({ msg, type, key: Date.now() }),
+    [],
+  );
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("products")
       .select("*")
       .order("id", { ascending: false });
-    if (!error) setProducts(data || []);
+    if (error) {
+      showToast("فشل تحميل المنتجات: " + error.message, "error");
+    } else {
+      setProducts(data || []);
+    }
     setLoading(false);
-  };
+  }, [showToast]);
 
   useEffect(() => {
     if (auth) fetchProducts();
-  }, [auth]);
+  }, [auth, fetchProducts]);
 
+  // Guard
   if (!auth)
     return (
       <>
@@ -753,41 +1074,70 @@ export default function Dashboard() {
       </>
     );
 
+  // ── open form ──
+  const openNew = () => {
+    setEditProduct(null);
+    setFormMode("new");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+  const openEdit = (p) => {
+    setEditProduct(p);
+    setFormMode("edit");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+  const closeForm = () => {
+    setFormMode(null);
+    setEditProduct(null);
+  };
+
+  // ── save ──
   const handleSave = async (form) => {
     setSaving(true);
     const payload = {
-      name: form.name,
-      nameAr: form.nameAr,
-      category: form.category,
+      name: form.name || "",
+      nameAr: form.nameAr || "",
+      category: form.category || "",
       price: Number(form.price),
-      description: form.description,
+      description: form.description || "",
       badge: form.badge || null,
-      inStock: form.inStock,
-      images: form.images,
-      materials: form.materials,
-      details: form.details || {},
+      inStock: !!form.inStock,
+      images: Array.isArray(form.images) ? form.images : [],
+      materials: Array.isArray(form.materials) ? form.materials : [],
+      details:
+        form.details &&
+        typeof form.details === "object" &&
+        !Array.isArray(form.details)
+          ? form.details
+          : {},
     };
-    if (editProduct?.id) {
+
+    if (formMode === "edit" && editProduct?.id) {
       const { error } = await supabase
         .from("products")
         .update(payload)
         .eq("id", editProduct.id);
-      if (error) showToast("فشل التعديل!", "error");
-      else showToast("تم تعديل المنتج ✓");
+      if (error) showToast("فشل التعديل: " + error.message, "error");
+      else {
+        showToast("تم تعديل المنتج ✓");
+        closeForm();
+        fetchProducts();
+      }
     } else {
       const { error } = await supabase.from("products").insert([payload]);
-      if (error) showToast("فشل الإضافة!", "error");
-      else showToast("تم إضافة المنتج ✓");
+      if (error) showToast("فشل الإضافة: " + error.message, "error");
+      else {
+        showToast("تم إضافة المنتج ✓");
+        closeForm();
+        fetchProducts();
+      }
     }
     setSaving(false);
-    setShowForm(false);
-    setEditProduct(null);
-    fetchProducts();
   };
 
+  // ── delete ──
   const handleDelete = async (id) => {
     const { error } = await supabase.from("products").delete().eq("id", id);
-    if (error) showToast("فشل الحذف!", "error");
+    if (error) showToast("فشل الحذف: " + error.message, "error");
     else {
       showToast("تم حذف المنتج");
       fetchProducts();
@@ -796,7 +1146,7 @@ export default function Dashboard() {
   };
 
   const filtered = products.filter((p) => {
-    const q = search.toLowerCase();
+    const q = search.trim().toLowerCase();
     if (!q) return true;
     return (
       (p.nameAr || "").includes(q) ||
@@ -822,9 +1172,18 @@ export default function Dashboard() {
       <div
         style={{ minHeight: "100vh", background: "#F7F3EE", direction: "rtl" }}
       >
-        {/* Header */}
-        <div style={{ background: "#2B1A12", padding: "0 32px" }}>
+        {/* ── HEADER ── */}
+        <div
+          style={{
+            background: "#2B1A12",
+            padding: "0 24px",
+            position: "sticky",
+            top: 0,
+            zIndex: 50,
+          }}
+        >
           <div
+            className="header-wrap"
             style={{
               maxWidth: 1200,
               margin: "0 auto",
@@ -837,16 +1196,17 @@ export default function Dashboard() {
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <div
                 style={{
-                  width: 32,
-                  height: 32,
+                  width: 34,
+                  height: 34,
                   background: "#C9A24A",
-                  borderRadius: 8,
+                  borderRadius: 9,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  flexShrink: 0,
                 }}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="white">
                   <path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" />
                   <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" />
                 </svg>
@@ -855,9 +1215,10 @@ export default function Dashboard() {
                 <p
                   style={{
                     color: "#C9A24A",
-                    fontSize: 11,
-                    letterSpacing: "0.2em",
+                    fontSize: 10,
+                    letterSpacing: ".22em",
                     textTransform: "uppercase",
+                    fontWeight: 700,
                   }}
                 >
                   لوحة التحكم
@@ -867,7 +1228,7 @@ export default function Dashboard() {
                     color: "#fff",
                     fontSize: 14,
                     fontWeight: 600,
-                    fontFamily: "'Playfair Display', serif",
+                    fontFamily: "'Playfair Display',serif",
                     fontStyle: "italic",
                   }}
                 >
@@ -875,18 +1236,16 @@ export default function Dashboard() {
                 </p>
               </div>
             </div>
-            <div style={{ display: "flex", gap: 10 }}>
+            <div className="header-actions" style={{ display: "flex", gap: 8 }}>
               <button
-                className="db-btn db-btn-primary"
-                onClick={() => {
-                  setShowForm(true);
-                  setEditProduct(null);
-                }}
-                style={{ background: "#C9A24A", fontSize: 12 }}
+                type="button"
+                className="db-btn db-btn-gold"
+                onClick={openNew}
+                style={{ fontSize: 12 }}
               >
                 <svg
-                  width="14"
-                  height="14"
+                  width="13"
+                  height="13"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -897,30 +1256,30 @@ export default function Dashboard() {
                 منتج جديد
               </button>
               <button
+                type="button"
                 className="db-btn db-btn-ghost"
                 onClick={() => setAuth(false)}
                 style={{
                   fontSize: 12,
                   color: "#EFE8DD",
-                  borderColor: "rgba(239,232,221,0.2)",
+                  borderColor: "rgba(239,232,221,.25)",
                 }}
               >
-                تسجيل خروج
+                خروج
               </button>
             </div>
           </div>
         </div>
 
-        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px" }}>
-          {/* Stats */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-              gap: 16,
-              marginBottom: 32,
-            }}
-          >
+        <div
+          style={{
+            maxWidth: 1200,
+            margin: "0 auto",
+            padding: "24px 16px 60px",
+          }}
+        >
+          {/* ── STATS ── */}
+          <div className="stats-grid" style={{ marginBottom: 24 }}>
             {[
               {
                 label: "إجمالي المنتجات",
@@ -954,42 +1313,41 @@ export default function Dashboard() {
                   background: "#fff",
                   border: "1px solid #E8E0D5",
                   borderRadius: 12,
-                  padding: "18px 20px",
-                  animationDelay: `${i * 60}ms`,
+                  padding: "16px 18px",
+                  animationDelay: `${i * 55}ms`,
                 }}
               >
-                <div style={{ fontSize: 22, marginBottom: 8 }}>{s.icon}</div>
+                <div style={{ fontSize: 20, marginBottom: 6 }}>{s.icon}</div>
                 <p
                   style={{
-                    fontSize: 22,
+                    fontSize: 20,
                     fontWeight: 800,
                     color: s.color,
-                    fontFamily: "'Playfair Display', serif",
+                    fontFamily: "'Playfair Display',serif",
+                    lineHeight: 1,
                   }}
                 >
                   {s.value}
                 </p>
-                <p style={{ fontSize: 11, color: "#9A8A7A", marginTop: 2 }}>
+                <p style={{ fontSize: 11, color: "#9A8A7A", marginTop: 4 }}>
                   {s.label}
                 </p>
               </div>
             ))}
           </div>
 
-          {/* Form */}
-          {(showForm || editProduct) && (
+          {/* ── FORM ── */}
+          {formMode && (
             <ProductForm
-              initial={editProduct}
+              key={formMode === "edit" ? `edit-${editProduct?.id}` : "new"}
+              initial={formMode === "edit" ? editProduct : null}
               onSave={handleSave}
-              onCancel={() => {
-                setShowForm(false);
-                setEditProduct(null);
-              }}
+              onCancel={closeForm}
               saving={saving}
             />
           )}
 
-          {/* Table */}
+          {/* ── TABLE ── */}
           <div
             style={{
               background: "#fff",
@@ -998,9 +1356,11 @@ export default function Dashboard() {
               overflow: "hidden",
             }}
           >
+            {/* top bar */}
             <div
+              className="table-topbar"
               style={{
-                padding: "20px 24px",
+                padding: "16px 20px",
                 borderBottom: "1px solid #E8E0D5",
                 display: "flex",
                 alignItems: "center",
@@ -1011,13 +1371,13 @@ export default function Dashboard() {
             >
               <h2
                 style={{
-                  fontSize: 16,
+                  fontSize: 15,
                   fontWeight: 700,
                   color: "#2B1A12",
-                  fontFamily: "'Playfair Display', serif",
+                  fontFamily: "'Playfair Display',serif",
                 }}
               >
-                المنتجات ({filtered.length})
+                المنتجات {!loading && `(${filtered.length})`}
               </h2>
               <div
                 style={{
@@ -1027,7 +1387,8 @@ export default function Dashboard() {
                   borderRadius: 8,
                   background: "#FDFAF6",
                   overflow: "hidden",
-                  width: 240,
+                  flex: 1,
+                  maxWidth: 280,
                 }}
               >
                 <svg
@@ -1043,9 +1404,11 @@ export default function Dashboard() {
                   <path d="m21 21-4.35-4.35" />
                 </svg>
                 <input
+                  id="search-products"
+                  name="search-products"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="بحث..."
+                  placeholder="بحث بالاسم أو الفئة..."
                   style={{
                     flex: 1,
                     border: "none",
@@ -1055,13 +1418,30 @@ export default function Dashboard() {
                     background: "transparent",
                     color: "#2B1A12",
                     direction: "rtl",
-                    fontFamily: "'Tajawal', sans-serif",
+                    fontFamily: "'Tajawal',sans-serif",
                   }}
                 />
+                {search && (
+                  <button
+                    type="button"
+                    onClick={() => setSearch("")}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      color: "#9A8A7A",
+                      padding: "0 10px",
+                      fontSize: 16,
+                    }}
+                  >
+                    ×
+                  </button>
+                )}
               </div>
             </div>
 
-            <div style={{ overflowX: "auto" }}>
+            {/* Desktop table */}
+            <div className="desktop-table" style={{ overflowX: "auto" }}>
               <table
                 style={{
                   width: "100%",
@@ -1084,12 +1464,12 @@ export default function Dashboard() {
                       <th
                         key={h}
                         style={{
-                          padding: "12px 16px",
+                          padding: "11px 14px",
                           textAlign: "right",
-                          fontSize: 11,
+                          fontSize: 10,
                           fontWeight: 700,
                           color: "#7A5A3A",
-                          letterSpacing: "0.08em",
+                          letterSpacing: ".1em",
                           textTransform: "uppercase",
                           borderBottom: "1px solid #E8E0D5",
                           whiteSpace: "nowrap",
@@ -1102,19 +1482,19 @@ export default function Dashboard() {
                 </thead>
                 <tbody>
                   {loading &&
-                    Array(4)
+                    Array(5)
                       .fill(0)
                       .map((_, i) => (
                         <tr key={i}>
                           {Array(8)
                             .fill(0)
                             .map((_, j) => (
-                              <td key={j} style={{ padding: "14px 16px" }}>
+                              <td key={j} style={{ padding: "14px" }}>
                                 <div
-                                  className="shimmer-row"
+                                  className="shimmer"
                                   style={{
-                                    height: 16,
-                                    width: j === 1 ? 48 : "80%",
+                                    height: 15,
+                                    width: j === 1 ? 48 : "75%",
                                   }}
                                 />
                               </td>
@@ -1123,45 +1503,47 @@ export default function Dashboard() {
                       ))}
                   {!loading &&
                     filtered.map((p, i) => {
-                      const images = Array.isArray(p.images) ? p.images : [];
+                      const imgs = Array.isArray(p.images) ? p.images : [];
                       return (
                         <tr
                           key={p.id}
                           className="product-row fade-in"
                           style={{
                             borderBottom: "1px solid #F0EBE3",
-                            animationDelay: `${i * 40}ms`,
+                            animationDelay: `${i * 35}ms`,
                           }}
                         >
                           <td
                             style={{
-                              padding: "12px 16px",
+                              padding: "11px 14px",
                               color: "#9A8A7A",
-                              fontSize: 11,
+                              fontSize: 10,
                             }}
                           >
                             #{p.id}
                           </td>
-                          <td style={{ padding: "12px 16px" }}>
-                            {images[0] ? (
+                          <td style={{ padding: "11px 14px" }}>
+                            {imgs[0] ? (
                               <img
-                                src={images[0]}
+                                src={imgs[0]}
                                 alt=""
                                 style={{
-                                  width: 52,
-                                  height: 44,
+                                  width: 50,
+                                  height: 42,
                                   objectFit: "cover",
-                                  borderRadius: 8,
+                                  borderRadius: 7,
                                   border: "1px solid #E8E0D5",
+                                  display: "block",
                                 }}
+                                loading="lazy"
                               />
                             ) : (
                               <div
                                 style={{
-                                  width: 52,
-                                  height: 44,
+                                  width: 50,
+                                  height: 42,
                                   background: "#F5F1EA",
-                                  borderRadius: 8,
+                                  borderRadius: 7,
                                   display: "flex",
                                   alignItems: "center",
                                   justifyContent: "center",
@@ -1172,32 +1554,44 @@ export default function Dashboard() {
                               </div>
                             )}
                           </td>
-                          <td style={{ padding: "12px 16px" }}>
+                          <td style={{ padding: "11px 14px", maxWidth: 180 }}>
                             <p
                               style={{
                                 fontWeight: 700,
                                 color: "#2B1A12",
                                 marginBottom: 2,
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
                               }}
                             >
-                              {p.nameAr || p.name}
+                              {p.nameAr || p.name || "—"}
                             </p>
                             {p.nameAr && p.name && (
-                              <p style={{ fontSize: 11, color: "#9A8A7A" }}>
+                              <p
+                                style={{
+                                  fontSize: 10,
+                                  color: "#9A8A7A",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
                                 {p.name}
                               </p>
                             )}
                           </td>
-                          <td style={{ padding: "12px 16px" }}>
+                          <td style={{ padding: "11px 14px" }}>
                             <span
                               style={{
                                 background: "#F5F1EA",
                                 border: "1px solid #E8E0D5",
                                 borderRadius: 20,
                                 padding: "3px 10px",
-                                fontSize: 11,
+                                fontSize: 10,
                                 color: "#5A341A",
                                 fontWeight: 600,
+                                whiteSpace: "nowrap",
                               }}
                             >
                               {p.category || "—"}
@@ -1205,23 +1599,23 @@ export default function Dashboard() {
                           </td>
                           <td
                             style={{
-                              padding: "12px 16px",
+                              padding: "11px 14px",
                               fontWeight: 700,
                               color: "#5A341A",
-                              fontFamily: "'Playfair Display', serif",
+                              fontFamily: "'Playfair Display',serif",
                               whiteSpace: "nowrap",
                             }}
                           >
                             {Number(p.price).toLocaleString()} EGP
                           </td>
-                          <td style={{ padding: "12px 16px" }}>
+                          <td style={{ padding: "11px 14px" }}>
                             <span
                               style={{
                                 display: "inline-flex",
                                 alignItems: "center",
                                 gap: 5,
-                                fontSize: 11,
-                                fontWeight: 600,
+                                fontSize: 10,
+                                fontWeight: 700,
                                 color: p.inStock ? "#27AE60" : "#C0392B",
                               }}
                             >
@@ -1237,7 +1631,7 @@ export default function Dashboard() {
                               {p.inStock ? "متوفر" : "نفذ"}
                             </span>
                           </td>
-                          <td style={{ padding: "12px 16px" }}>
+                          <td style={{ padding: "11px 14px" }}>
                             {p.badge ? (
                               <span
                                 style={{
@@ -1245,7 +1639,7 @@ export default function Dashboard() {
                                   border: "1px solid #C9A24A44",
                                   borderRadius: 20,
                                   padding: "3px 10px",
-                                  fontSize: 11,
+                                  fontSize: 10,
                                   color: "#C9A24A",
                                   fontWeight: 600,
                                 }}
@@ -1253,31 +1647,26 @@ export default function Dashboard() {
                                 {p.badge}
                               </span>
                             ) : (
-                              <span style={{ color: "#C0C0C0", fontSize: 11 }}>
+                              <span style={{ color: "#C0C0C0", fontSize: 10 }}>
                                 —
                               </span>
                             )}
                           </td>
-                          <td style={{ padding: "12px 16px" }}>
+                          <td style={{ padding: "11px 14px" }}>
                             <div style={{ display: "flex", gap: 6 }}>
                               <button
+                                type="button"
                                 className="db-btn db-btn-ghost"
-                                onClick={() => {
-                                  setEditProduct(p);
-                                  setShowForm(false);
-                                  window.scrollTo({
-                                    top: 0,
-                                    behavior: "smooth",
-                                  });
-                                }}
-                                style={{ padding: "6px 12px", fontSize: 11 }}
+                                onClick={() => openEdit(p)}
+                                style={{ padding: "6px 11px", fontSize: 11 }}
                               >
                                 ✏️ تعديل
                               </button>
                               <button
+                                type="button"
                                 className="db-btn db-btn-danger"
                                 onClick={() => setDeleteId(p.id)}
-                                style={{ padding: "6px 12px", fontSize: 11 }}
+                                style={{ padding: "6px 11px", fontSize: 11 }}
                               >
                                 🗑️ حذف
                               </button>
@@ -1291,46 +1680,127 @@ export default function Dashboard() {
                       <td
                         colSpan={8}
                         style={{
-                          padding: "60px 16px",
+                          padding: "64px 16px",
                           textAlign: "center",
                           color: "#9A8A7A",
                         }}
                       >
-                        <div style={{ fontSize: 40, marginBottom: 12 }}>📦</div>
+                        <div style={{ fontSize: 38, marginBottom: 10 }}>📦</div>
                         <p
                           style={{
-                            fontSize: 15,
+                            fontSize: 14,
                             fontWeight: 600,
                             color: "#5A341A",
+                            marginBottom: 4,
                           }}
                         >
-                          لا توجد منتجات
+                          {search ? "لا توجد نتائج" : "لا توجد منتجات بعد"}
                         </p>
-                        <p style={{ fontSize: 12, marginTop: 4 }}>
-                          اضغط "منتج جديد" لإضافة أول منتج
-                        </p>
+                        {!search && (
+                          <button
+                            type="button"
+                            className="db-btn db-btn-gold"
+                            onClick={openNew}
+                            style={{ marginTop: 12, fontSize: 12 }}
+                          >
+                            ➕ أضف أول منتج
+                          </button>
+                        )}
                       </td>
                     </tr>
                   )}
                 </tbody>
               </table>
             </div>
+
+            {/* Mobile cards */}
+            <div className="mobile-cards">
+              {loading &&
+                Array(3)
+                  .fill(0)
+                  .map((_, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        background: "#fff",
+                        border: "1px solid #E8E0D5",
+                        borderRadius: 12,
+                        padding: 14,
+                        display: "flex",
+                        gap: 12,
+                      }}
+                    >
+                      <div
+                        className="shimmer"
+                        style={{
+                          width: 64,
+                          height: 64,
+                          borderRadius: 8,
+                          flexShrink: 0,
+                        }}
+                      />
+                      <div style={{ flex: 1 }}>
+                        <div
+                          className="shimmer"
+                          style={{ height: 13, width: "55%", marginBottom: 8 }}
+                        />
+                        <div
+                          className="shimmer"
+                          style={{ height: 11, width: "35%", marginBottom: 8 }}
+                        />
+                        <div
+                          className="shimmer"
+                          style={{ height: 11, width: "45%" }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+              {!loading &&
+                filtered.map((p) => (
+                  <MobileCard
+                    key={p.id}
+                    p={p}
+                    onEdit={openEdit}
+                    onDelete={(id) => setDeleteId(id)}
+                  />
+                ))}
+              {!loading && filtered.length === 0 && (
+                <div
+                  style={{
+                    textAlign: "center",
+                    padding: "48px 16px",
+                    color: "#9A8A7A",
+                  }}
+                >
+                  <div style={{ fontSize: 36, marginBottom: 10 }}>📦</div>
+                  <p
+                    style={{ fontSize: 14, fontWeight: 600, color: "#5A341A" }}
+                  >
+                    {search ? "لا توجد نتائج" : "لا توجد منتجات"}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Delete Modal */}
+        {/* ── DELETE MODAL ── */}
         {deleteId && (
           <div
+            role="dialog"
+            aria-modal="true"
             style={{
               position: "fixed",
               inset: 0,
-              background: "rgba(0,0,0,0.45)",
+              background: "rgba(0,0,0,.48)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               zIndex: 1000,
-              backdropFilter: "blur(3px)",
+              backdropFilter: "blur(4px)",
+              padding: 20,
             }}
+            onClick={(e) => e.target === e.currentTarget && setDeleteId(null)}
           >
             <div
               className="fade-in"
@@ -1339,18 +1809,18 @@ export default function Dashboard() {
                 borderRadius: 16,
                 padding: 32,
                 maxWidth: 360,
-                width: "90%",
+                width: "100%",
                 textAlign: "center",
               }}
             >
-              <div style={{ fontSize: 44, marginBottom: 16 }}>🗑️</div>
+              <div style={{ fontSize: 42, marginBottom: 14 }}>🗑️</div>
               <h3
                 style={{
                   fontSize: 17,
                   fontWeight: 700,
                   color: "#2B1A12",
                   marginBottom: 8,
-                  fontFamily: "'Playfair Display', serif",
+                  fontFamily: "'Playfair Display',serif",
                 }}
               >
                 حذف المنتج؟
@@ -1362,12 +1832,14 @@ export default function Dashboard() {
                 style={{ display: "flex", gap: 10, justifyContent: "center" }}
               >
                 <button
+                  type="button"
                   className="db-btn db-btn-ghost"
                   onClick={() => setDeleteId(null)}
                 >
                   إلغاء
                 </button>
                 <button
+                  type="button"
                   className="db-btn"
                   onClick={() => handleDelete(deleteId)}
                   style={{
@@ -1383,8 +1855,10 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* ── TOAST ── */}
         {toast && (
           <Toast
+            key={toast.key}
             msg={toast.msg}
             type={toast.type}
             onClose={() => setToast(null)}
