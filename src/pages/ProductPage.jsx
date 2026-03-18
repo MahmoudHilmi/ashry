@@ -67,7 +67,7 @@ export default function ProductPage({ allProducts = MOCK_PRODUCTS }) {
   }
 
   const badge = product.badge ? badgeStyle[product.badge] : null;
-  const related = fallbackProducts
+  const related = productList
     .filter(
       (p) =>
         String(p.id) !== String(product.id) && p.category === product.category,
