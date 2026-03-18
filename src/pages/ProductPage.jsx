@@ -1,25 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
+import MOCK_PRODUCTS from "../assets/data";
 import ProductCard from "../components/ProductCard";
-import {
-  MessageCircle,
-  X,
-  ChevronLeft,
-  ChevronRight,
-  Home,
-  ShoppingBag,
-  Truck,
-  Hammer,
-  ShieldCheck,
-  ZoomIn,
-  Minus,
-  Plus,
-  ArrowLeft,
-  Package,
-} from "lucide-react";
 
 const WHATSAPP_NUMBER = "2001092846526";
+
+const WA_ICON = (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+  </svg>
+);
 
 const badgeStyle = {
   الأفضل: { bg: "#5A341A", color: "#fff" },
@@ -29,40 +20,26 @@ const badgeStyle = {
   مخصص: { bg: "#7A5A3A", color: "#fff" },
 };
 
-export default function ProductPage({ allProducts = [] }) {
+// ✅ FIX 1: removed `onNavigate` prop — we use React Router's navigate() everywhere
+export default function ProductPage({ allProducts = MOCK_PRODUCTS }) {
   const { state } = useLocation();
   const { id } = useParams();
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // single source of truth for all navigation
 
-  // ── use allProducts directly — no MOCK fallback ──
-  const productList = Array.isArray(allProducts) ? allProducts : [];
+  const fallbackProducts =
+    allProducts === MOCK_PRODUCTS
+      ? MOCK_PRODUCTS.map((p, i) => ({ ...p, id: String(i + 1) }))
+      : allProducts;
 
-  // product can come from router state (fast) or from the list (on refresh)
   const product =
-    state?.product || productList.find((p) => String(p.id) === String(id));
-
-  // safe helpers
-  const images = Array.isArray(product?.images) ? product.images : [];
-  const materials = Array.isArray(product?.materials) ? product.materials : [];
-  const details =
-    product?.details &&
-    typeof product.details === "object" &&
-    !Array.isArray(product.details)
-      ? product.details
-      : {};
-
-  // related — same category, different product, from real list
-  const related = productList
-    .filter(
-      (p) => String(p.id) !== String(id) && p.category === product?.category,
-    )
-    .slice(0, 3);
+    state?.product || fallbackProducts.find((p) => String(p.id) === String(id));
 
   const [activeImg, setActiveImg] = useState(0);
   const [activeTab, setActiveTab] = useState("description");
   const [qty, setQty] = useState(1);
   const [zoomed, setZoomed] = useState(false);
 
+  // Reset state whenever URL product ID changes
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
     setActiveImg(0);
@@ -70,46 +47,36 @@ export default function ProductPage({ allProducts = [] }) {
     setActiveTab("description");
   }, [id]);
 
-  // ── not found ──
   if (!product) {
     return (
-      <>
-        <Header />
-        <div style={{ textAlign: "center", padding: "120px 16px" }}>
-          <Package size={52} color="#C9A24A" style={{ marginBottom: 16 }} />
-          <p
-            className="fp"
-            style={{ fontSize: 22, color: "#5A341A", marginBottom: 8 }}
-          >
-            المنتج غير موجود
-          </p>
-          <p style={{ fontSize: 13, color: "#7A5A3A", marginBottom: 28 }}>
-            ربما تم حذف المنتج أو الرابط غير صحيح
-          </p>
-          <button
-            onClick={() => navigate("/products")}
-            style={{
-              background: "#5A341A",
-              color: "#fff",
-              padding: "12px 32px",
-              border: "none",
-              cursor: "pointer",
-              fontSize: 13,
-              fontWeight: 600,
-            }}
-          >
-            العودة للمتجر
-          </button>
-        </div>
-      </>
+      <div style={{ textAlign: "center", padding: "100px 16px" }}>
+        <p
+          className="fp"
+          style={{ fontSize: 22, color: "#5A341A", marginBottom: 20 }}
+        >
+          المنتج غير موجود
+        </p>
+        <button
+          onClick={() => navigate("/products")}
+          style={{ background: "#5A341A", color: "#fff", padding: "12px 32px" }}
+        >
+          العودة للمتجر
+        </button>
+      </div>
     );
   }
 
   const badge = product.badge ? badgeStyle[product.badge] : null;
+  const related = productList
+    .filter(
+      (p) =>
+        String(p.id) !== String(product.id) && p.category === product.category,
+    )
+    .slice(0, 3);
 
   const handleWA = () => {
     const msg = encodeURIComponent(
-      `مرحباً، أود طلب:\n\n🪑 *${product.nameAr || product.name}*\n🆔 رقم المنتج: ${product.id}\n📦 الكمية: ${qty}\n💰 السعر الإجمالي: ${(product.price * qty).toLocaleString()} EGP\n\nالمواد:\n${materials.map((m) => `• ${m}`).join("\n")}\n\nالوصف: ${product.description || ""}\n\nيرجى تأكيد الطلب وتفاصيل التوصيل. شكراً!`,
+      `مرحباً، أود طلب:\n\n🪑 *${product.name}*\n🆔 رقم المنتج: ${product.id}\n📦 الكمية: ${qty}\n💰 السعر الإجمالي: ${(product.price * qty).toLocaleString()} EGP\n\nالمواد:\n${product.materials.map((m) => `• ${m}`).join("\n")}\n\nالوصف: ${product.description}\n\nيرجى تأكيد الطلب وتفاصيل التوصيل. شكراً!`,
     );
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, "_blank");
   };
@@ -117,8 +84,7 @@ export default function ProductPage({ allProducts = [] }) {
   return (
     <div className="page-in" style={{ width: "100%" }}>
       <Header />
-
-      {/* ── Breadcrumb ── */}
+      {/* Breadcrumb */}
       <div
         style={{
           background: "#fff",
@@ -140,6 +106,7 @@ export default function ProductPage({ allProducts = [] }) {
             direction: "rtl",
           }}
         >
+          {/* ✅ FIX 2: use navigate() instead of onNavigate() */}
           <button
             onClick={() => navigate("/")}
             style={{
@@ -148,14 +115,11 @@ export default function ProductPage({ allProducts = [] }) {
               cursor: "pointer",
               color: "#7A5A3A",
               fontSize: 11,
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
             }}
           >
-            <Home size={12} /> الرئيسية
+            الرئيسية
           </button>
-          <ChevronLeft size={12} color="#C9A24A" />
+          <span style={{ color: "#C9A24A" }}>/</span>
           <button
             onClick={() => navigate("/products")}
             style={{
@@ -164,14 +128,11 @@ export default function ProductPage({ allProducts = [] }) {
               cursor: "pointer",
               color: "#7A5A3A",
               fontSize: 11,
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
             }}
           >
-            <ShoppingBag size={12} /> المنتجات
+            المنتجات
           </button>
-          <ChevronLeft size={12} color="#C9A24A" />
+          <span style={{ color: "#C9A24A" }}>/</span>
           <span style={{ color: "#5A341A", fontWeight: 500 }}>
             {product.nameAr || product.name}
           </span>
@@ -186,7 +147,7 @@ export default function ProductPage({ allProducts = [] }) {
           padding: "28px 16px 80px",
         }}
       >
-        {/* ── Main 2-col ── */}
+        {/* Main 2-col */}
         <div
           style={{
             display: "grid",
@@ -198,94 +159,159 @@ export default function ProductPage({ allProducts = [] }) {
         >
           {/* Images */}
           <div>
-            {/* Main image */}
-            {/* Zoom hint */}
-            {images.length > 0 && (
-              <>
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: 44,
-                    left: 12,
-                    background: "rgba(0,0,0,0.4)",
-                    backdropFilter: "blur(4px)",
-                    borderRadius: 6,
-                    padding: "4px 8px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 4,
-                    pointerEvents: "none",
-                  }}
-                >
-                  <ZoomIn size={12} color="#fff" />
-                  <span style={{ fontSize: 10, color: "#fff" }}>تكبير</span>
-                </div>
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: 12,
-                    left: 12,
-                    background: "rgba(255,255,255,0.82)",
-                    backdropFilter: "blur(4px)",
-                    padding: "3px 10px",
-                    fontSize: 10,
-                    letterSpacing: "0.1em",
-                    color: "#5A341A",
-                  }}
-                >
-                  {activeImg + 1} / {images.length}
-                </div>
-              </>
-            )}
-
-            {/* Thumbnails */}
-            {images.length > 1 && (
+            <div
+              style={{
+                position: "relative",
+                paddingBottom: "100%",
+                overflow: "hidden",
+                background: "#F5F1EA",
+                cursor: "zoom-in",
+              }}
+              onClick={() => setZoomed(true)}
+            >
+              <img
+                src={product.images?.[activeImg] || "/placeholder.jpg"}
+                alt={product.name}
+                className="img-zoom"
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                }}
+              />
               <div
                 style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(4, 1fr)",
-                  gap: 8,
-                  marginTop: 8,
+                  position: "absolute",
+                  inset: 0,
+                  background:
+                    "linear-gradient(135deg, rgba(90,52,26,0.08), transparent)",
+                  pointerEvents: "none",
+                }}
+              />
+              <div
+                style={{
+                  position: "absolute",
+                  top: 12,
+                  left: 12,
+                  width: 40,
+                  height: 40,
+                  borderTop: "2px solid rgba(201,162,74,0.5)",
+                  borderLeft: "2px solid rgba(201,162,74,0.5)",
+                  pointerEvents: "none",
+                }}
+              />
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: 12,
+                  right: 12,
+                  width: 40,
+                  height: 40,
+                  borderBottom: "2px solid rgba(201,162,74,0.5)",
+                  borderRight: "2px solid rgba(201,162,74,0.5)",
+                  pointerEvents: "none",
+                }}
+              />
+              <div
+                className="spin-slow"
+                style={{
+                  position: "absolute",
+                  top: 14,
+                  right: 14,
+                  width: 60,
+                  height: 60,
+                  border: "1px solid rgba(201,162,74,0.5)",
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  pointerEvents: "none",
                 }}
               >
-                {images.map((img, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setActiveImg(i)}
-                    style={{
-                      overflow: "hidden",
-                      aspectRatio: "1",
-                      background: "#F5F1EA",
-                      border: "none",
-                      cursor: "pointer",
-                      outline:
-                        activeImg === i
-                          ? "2px solid #C9A24A"
-                          : "1px solid #EFE8DD",
-                      opacity: activeImg === i ? 1 : 0.6,
-                      transition: "all 0.2s",
-                      padding: 0,
-                    }}
-                  >
-                    <img
-                      src={img}
-                      alt={`صورة ${i + 1}`}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                      }}
-                      loading="lazy"
-                    />
-                  </button>
-                ))}
+                <span
+                  className="fp"
+                  style={{ fontStyle: "italic", fontSize: 9, color: "#C9A24A" }}
+                >
+                  فاخر
+                </span>
               </div>
-            )}
+              {badge && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 12,
+                    left: 60,
+                    padding: "4px 10px",
+                    fontSize: 10,
+                    fontWeight: 700,
+                    background: badge.bg,
+                    color: badge.color,
+                  }}
+                >
+                  {product.badge}
+                </div>
+              )}
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: 12,
+                  left: 12,
+                  background: "rgba(255,255,255,0.82)",
+                  backdropFilter: "blur(4px)",
+                  padding: "3px 10px",
+                  fontSize: 10,
+                  letterSpacing: "0.1em",
+                  color: "#5A341A",
+                }}
+              >
+                {activeImg + 1} / {product.images.length}
+              </div>
+            </div>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(4, 1fr)",
+                gap: 8,
+                marginTop: 8,
+              }}
+            >
+              {product.images.map((img, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveImg(i)}
+                  style={{
+                    overflow: "hidden",
+                    aspectRatio: "1",
+                    background: "#F5F1EA",
+                    border: "none",
+                    cursor: "pointer",
+                    outline:
+                      activeImg === i
+                        ? "2px solid #C9A24A"
+                        : "1px solid #EFE8DD",
+                    opacity: activeImg === i ? 1 : 0.6,
+                    transition: "all 0.2s",
+                    padding: 0,
+                  }}
+                >
+                  <img
+                    src={img}
+                    alt=""
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
+                  />
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Info */}
           <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-            {/* Category */}
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <div style={{ width: 24, height: 1, background: "#C9A24A" }} />
               <span
@@ -299,8 +325,6 @@ export default function ProductPage({ allProducts = [] }) {
                 {product.category}
               </span>
             </div>
-
-            {/* Name */}
             <div>
               <h1
                 className="fp"
@@ -311,24 +335,20 @@ export default function ProductPage({ allProducts = [] }) {
                   color: "#2B1A12",
                 }}
               >
-                {product.nameAr || product.name}
+                {product.name}
               </h1>
-              {product.nameAr && product.name && (
-                <p
-                  style={{
-                    fontSize: "1rem",
-                    fontWeight: 300,
-                    color: "#7A5A3A",
-                    marginTop: 4,
-                    direction: "ltr",
-                  }}
-                >
-                  {product.name}
-                </p>
-              )}
+              <p
+                style={{
+                  fontSize: "1rem",
+                  fontWeight: 300,
+                  color: "#7A5A3A",
+                  marginTop: 4,
+                  direction: "rtl",
+                }}
+              >
+                {product.nameAr}
+              </p>
             </div>
-
-            {/* Price */}
             <div
               style={{
                 display: "flex",
@@ -364,9 +384,7 @@ export default function ProductPage({ allProducts = [] }) {
                 </span>
               )}
             </div>
-
             <div style={{ height: 1, background: "#EFE8DD" }} />
-
             <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
               <span
                 style={{
@@ -397,6 +415,7 @@ export default function ProductPage({ allProducts = [] }) {
                     border: "none",
                     cursor: "pointer",
                     color: "#5A341A",
+                    fontSize: 18,
                   }}
                   onMouseEnter={(e) =>
                     (e.currentTarget.style.background = "#F5F1EA")
@@ -405,7 +424,7 @@ export default function ProductPage({ allProducts = [] }) {
                     (e.currentTarget.style.background = "none")
                   }
                 >
-                  <Minus size={14} />
+                  −
                 </button>
                 <span
                   style={{
@@ -435,6 +454,7 @@ export default function ProductPage({ allProducts = [] }) {
                     border: "none",
                     cursor: "pointer",
                     color: "#5A341A",
+                    fontSize: 18,
                   }}
                   onMouseEnter={(e) =>
                     (e.currentTarget.style.background = "#F5F1EA")
@@ -443,12 +463,10 @@ export default function ProductPage({ allProducts = [] }) {
                     (e.currentTarget.style.background = "none")
                   }
                 >
-                  <Plus size={14} />
+                  +
                 </button>
               </div>
             </div>
-
-            {/* CTA buttons */}
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
               {product.inStock ? (
                 <button
@@ -477,7 +495,7 @@ export default function ProductPage({ allProducts = [] }) {
                     (e.currentTarget.style.background = "#25D366")
                   }
                 >
-                  <MessageCircle size={16} /> الطلب من واتساب —{" "}
+                  {WA_ICON} الطلب من واتساب —{" "}
                   {(product.price * qty).toLocaleString()} EGP
                 </button>
               ) : (
@@ -500,6 +518,7 @@ export default function ProductPage({ allProducts = [] }) {
                   غير متوفر حالياً
                 </div>
               )}
+              {/* ✅ FIX 3: use navigate() instead of localNavigate() */}
               <button
                 onClick={() => navigate("/products")}
                 className="sweep-btn"
@@ -513,17 +532,11 @@ export default function ProductPage({ allProducts = [] }) {
                   border: "none",
                   cursor: "pointer",
                   fontWeight: 500,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
                 }}
               >
-                <span>العودة للمتجر</span>
-                <ArrowLeft size={14} />
+                <span>تفاصيل أكثر</span>
               </button>
             </div>
-
-            {/* Trust badges */}
             <div
               style={{
                 display: "grid",
@@ -532,21 +545,9 @@ export default function ProductPage({ allProducts = [] }) {
               }}
             >
               {[
-                [
-                  <Truck size={18} color="#C9A24A" />,
-                  "توصيل مجاني",
-                  "طلبات فوق 20000 EGP",
-                ],
-                [
-                  <Hammer size={18} color="#C9A24A" />,
-                  "صناعة يدوية",
-                  "حرفيون ماهرون",
-                ],
-                [
-                  <ShieldCheck size={18} color="#C9A24A" />,
-                  "ضمان 3 سنوات",
-                  "ضمان هيكلي",
-                ],
+                ["🚚", "توصيل مجاني", "طلبات فوق 20000 EGP"],
+                ["🔨", "صناعة يدوية", "حرفيون ماهرون"],
+                ["🛡️", "ضمان3 سنوات", "ضمان هيكلي"],
               ].map(([icon, label, sub]) => (
                 <div
                   key={label}
@@ -561,7 +562,7 @@ export default function ProductPage({ allProducts = [] }) {
                     gap: 3,
                   }}
                 >
-                  {icon}
+                  <span style={{ fontSize: 18 }}>{icon}</span>
                   <span
                     style={{
                       fontSize: 10,
@@ -580,7 +581,6 @@ export default function ProductPage({ allProducts = [] }) {
                 </div>
               ))}
             </div>
-
             <p
               style={{
                 fontSize: 10,
@@ -594,7 +594,7 @@ export default function ProductPage({ allProducts = [] }) {
           </div>
         </div>
 
-        {/* ── Tabs ── */}
+        {/* Tabs */}
         <div style={{ marginTop: 60 }}>
           <div
             className="no-scrollbar"
@@ -638,7 +638,6 @@ export default function ProductPage({ allProducts = [] }) {
             ))}
           </div>
 
-          {/* Description tab */}
           {activeTab === "description" && (
             <div
               style={{
@@ -696,19 +695,17 @@ export default function ProductPage({ allProducts = [] }) {
                   background: "#EFE8DD",
                 }}
               >
-                {(images[1] || images[0]) && (
-                  <img
-                    src={images[1] || images[0]}
-                    alt="تفاصيل"
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                    }}
-                  />
-                )}
+                <img
+                  src={product.images[1] || product.images[0]}
+                  alt="detail"
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                  }}
+                />
                 <div
                   style={{
                     position: "absolute",
@@ -749,124 +746,117 @@ export default function ProductPage({ allProducts = [] }) {
             </div>
           )}
 
-          {/* Materials tab */}
-          {activeTab === "materials" &&
-            (materials.length === 0 ? (
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: "48px 16px",
-                  color: "#9A8A7A",
-                  fontSize: 13,
-                }}
-              >
-                لا توجد خامات مسجلة
-              </div>
-            ) : (
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns:
-                    "repeat(auto-fill, minmax(min(100%, 220px), 1fr))",
-                  gap: 1,
-                  background: "#EFE8DD",
-                }}
-              >
-                {materials.map((m, i) => (
-                  <div
-                    key={i}
-                    style={{ background: "#fff", padding: "28px 24px" }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.background = "#F5F1EA")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.background = "#fff")
-                    }
-                  >
-                    <div
-                      style={{
-                        width: 20,
-                        height: 1,
-                        background: "#C9A24A",
-                        marginBottom: 14,
-                      }}
-                    />
-                    <p
-                      style={{
-                        fontSize: 10,
-                        letterSpacing: "0.22em",
-                        textTransform: "uppercase",
-                        color: "#C9A24A",
-                        marginBottom: 6,
-                      }}
-                    >
-                      الخامة {i + 1}
-                    </p>
-                    <p
-                      className="fp"
-                      style={{
-                        fontSize: "1.1rem",
-                        fontWeight: 500,
-                        color: "#2B1A12",
-                      }}
-                    >
-                      {m}
-                    </p>
-                  </div>
-                ))}
+          {activeTab === "materials" && (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "repeat(auto-fill, minmax(min(100%, 220px), 1fr))",
+                gap: 1,
+                background: "#EFE8DD",
+              }}
+            >
+              {product.materials.map((m, i) => (
                 <div
-                  style={{
-                    background: "#5A341A",
-                    padding: "28px 24px",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "center",
-                  }}
+                  key={i}
+                  style={{ background: "#fff", padding: "28px 24px" }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.background = "#F5F1EA")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.background = "#fff")
+                  }
                 >
-                  <p
-                    className="fp"
+                  <div
                     style={{
-                      fontStyle: "italic",
-                      fontSize: "1rem",
-                      color: "#C9A24A",
-                      lineHeight: 1.5,
-                      marginBottom: 8,
-                      direction: "rtl",
+                      width: 20,
+                      height: 1,
+                      background: "#C9A24A",
+                      marginBottom: 14,
                     }}
-                  >
-                    «نختار فقط أفضل الخامات لكل قطعة أشري»
-                  </p>
+                  />
                   <p
                     style={{
                       fontSize: 10,
-                      letterSpacing: "0.18em",
+                      letterSpacing: "0.22em",
                       textTransform: "uppercase",
-                      color: "rgba(255,255,255,0.5)",
+                      color: "#C9A24A",
+                      marginBottom: 6,
                     }}
                   >
-                    التزامنا
+                    الخامة {i + 1}
+                  </p>
+                  <p
+                    className="fp"
+                    style={{
+                      fontSize: "1.1rem",
+                      fontWeight: 500,
+                      color: "#2B1A12",
+                    }}
+                  >
+                    {m}
                   </p>
                 </div>
-              </div>
-            ))}
-
-          {/* Details tab */}
-          {activeTab === "details" &&
-            (Object.entries(details).length === 0 ? (
+              ))}
               <div
                 style={{
-                  textAlign: "center",
-                  padding: "48px 16px",
-                  color: "#9A8A7A",
-                  fontSize: 13,
-                  direction: "rtl",
+                  background: "#5A341A",
+                  padding: "28px 24px",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
                 }}
               >
-                لا توجد تفاصيل إضافية
+                <p
+                  className="fp"
+                  style={{
+                    fontStyle: "italic",
+                    fontSize: "1rem",
+                    color: "#C9A24A",
+                    lineHeight: 1.5,
+                    marginBottom: 8,
+                    direction: "rtl",
+                  }}
+                >
+                  «نختار فقط أفضل الخامات لكل قطعة أشري»
+                </p>
+                <p
+                  style={{
+                    fontSize: 10,
+                    letterSpacing: "0.18em",
+                    textTransform: "uppercase",
+                    color: "rgba(255,255,255,0.5)",
+                  }}
+                >
+                  التزامنا
+                </p>
               </div>
-            ) : (
-              <div style={{ border: "1px solid #EFE8DD" }}>
-                {Object.entries(details).map(([key, value], i) => (
+            </div>
+          )}
+
+          {activeTab === "details" && (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "repeat(auto-fill, minmax(min(100%, 280px), 1fr))",
+                border: "1px solid #EFE8DD",
+              }}
+            >
+              {Object.entries(product.details || {}).length === 0 ? (
+                <div
+                  style={{
+                    padding: "32px 20px",
+                    textAlign: "center",
+                    color: "#9A8A7A",
+                    fontSize: 13,
+                    direction: "rtl",
+                  }}
+                >
+                  لا توجد تفاصيل إضافية
+                </div>
+              ) : (
+                Object.entries(product.details || {}).map(([key, value], i) => (
                   <div
                     key={i}
                     style={{
@@ -903,15 +893,16 @@ export default function ProductPage({ allProducts = [] }) {
                         color: "#2B1A12",
                       }}
                     >
-                      {String(value)}
+                      {value}
                     </span>
                   </div>
-                ))}
-              </div>
-            ))}
+                ))
+              )}
+            </div>
+          )}
         </div>
 
-        {/* ── Related products ── */}
+        {/* Related */}
         {related.length > 0 && (
           <div style={{ marginTop: 60 }}>
             <div
@@ -955,8 +946,7 @@ export default function ProductPage({ allProducts = [] }) {
         )}
       </main>
 
-      {/* ── Zoom modal ── */}
-      {zoomed && images[activeImg] && (
+      {zoomed && (
         <div
           onClick={() => setZoomed(false)}
           style={{
@@ -971,14 +961,13 @@ export default function ProductPage({ allProducts = [] }) {
           }}
         >
           <img
-            src={images[activeImg]}
+            src={product.images[activeImg]}
             alt=""
             style={{
               maxWidth: "100%",
               maxHeight: "100%",
               objectFit: "contain",
             }}
-            onClick={(e) => e.stopPropagation()}
           />
           <button
             onClick={() => setZoomed(false)}
@@ -986,73 +975,23 @@ export default function ProductPage({ allProducts = [] }) {
               position: "absolute",
               top: 16,
               right: 16,
-              background: "rgba(255,255,255,0.12)",
+              background: "none",
               border: "none",
-              borderRadius: "50%",
-              width: 40,
-              height: 40,
               cursor: "pointer",
-              color: "#fff",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              color: "rgba(255,255,255,0.6)",
             }}
           >
-            <X size={20} />
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
           </button>
-          {/* Prev / Next arrows */}
-          {images.length > 1 && (
-            <>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setActiveImg((i) => (i - 1 + images.length) % images.length);
-                }}
-                style={{
-                  position: "absolute",
-                  left: 16,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  background: "rgba(255,255,255,0.12)",
-                  border: "none",
-                  borderRadius: "50%",
-                  width: 44,
-                  height: 44,
-                  cursor: "pointer",
-                  color: "#fff",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <ChevronLeft size={22} />
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setActiveImg((i) => (i + 1) % images.length);
-                }}
-                style={{
-                  position: "absolute",
-                  right: 16,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  background: "rgba(255,255,255,0.12)",
-                  border: "none",
-                  borderRadius: "50%",
-                  width: 44,
-                  height: 44,
-                  cursor: "pointer",
-                  color: "#fff",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <ChevronRight size={22} />
-              </button>
-            </>
-          )}
         </div>
       )}
     </div>
