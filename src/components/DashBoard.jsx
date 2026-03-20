@@ -1868,7 +1868,6 @@
 //     </>
 //   );
 // }
-
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../supabaseClient.js";
 import AnalyticsSection from "./Analyticssection.jsx";
@@ -1882,6 +1881,17 @@ import {
   Package,
   ClipboardList,
   BarChart2,
+  Trash2,
+  ImagePlus,
+  Sofa,
+  Clock,
+  CheckCircle2,
+  Wallet,
+  Tag,
+  Pencil,
+  Eye,
+  XCircle,
+  X,
 } from "lucide-react";
 
 const ADMIN_PASSWORD = "ashry2025";
@@ -1996,6 +2006,11 @@ const Spinner = ({ size = 16, color = "#fff" }) => (
   />
 );
 
+// Placeholder icon for products with no image
+const ProductPlaceholder = ({ size = 20 }) => (
+  <Sofa size={size} color="#C9A24A" strokeWidth={1.5} />
+);
+
 function Toast({ msg, type, onClose }) {
   useEffect(() => {
     const t = setTimeout(onClose, 3200);
@@ -2082,7 +2097,20 @@ function DeleteModal({
           textAlign: "center",
         }}
       >
-        <div style={{ fontSize: 42, marginBottom: 14 }}>🗑️</div>
+        <div
+          style={{
+            width: 56,
+            height: 56,
+            background: "#FEF0EE",
+            borderRadius: "50%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            margin: "0 auto 14px",
+          }}
+        >
+          <Trash2 size={24} color="#C0392B" strokeWidth={1.8} />
+        </div>
         <h3
           style={{
             fontSize: 17,
@@ -2142,7 +2170,7 @@ function LoginScreen({ onLogin }) {
     if (pass === ADMIN_PASSWORD) {
       onLogin();
     } else {
-      setError("كلمة المرور غلط ❌");
+      setError("كلمة المرور غلط");
       setShaking(true);
       setTimeout(() => setShaking(false), 500);
       setLoading(false);
@@ -2248,8 +2276,13 @@ function LoginScreen({ onLogin }) {
               color: "#C0392B",
               marginBottom: 10,
               textAlign: "right",
+              display: "flex",
+              alignItems: "center",
+              gap: 5,
+              justifyContent: "flex-end",
             }}
           >
+            <XCircle size={13} />
             {error}
           </p>
         )}
@@ -2351,7 +2384,7 @@ function ImageUploader({ images, onChange }) {
                 aria-label="حذف الصورة"
                 onClick={() => onChange(images.filter((_, idx) => idx !== i))}
               >
-                ×
+                <X size={11} strokeWidth={3} />
               </button>
             </div>
           ))}
@@ -2412,7 +2445,15 @@ function ImageUploader({ images, onChange }) {
           </div>
         ) : (
           <>
-            <div style={{ fontSize: 28, marginBottom: 8 }}>📸</div>
+            <div
+              style={{
+                marginBottom: 8,
+                display: "flex",
+                justifyContent: "center",
+              }}
+            >
+              <ImagePlus size={28} color="#C9A24A" strokeWidth={1.5} />
+            </div>
             <p
               style={{
                 fontSize: 13,
@@ -2476,7 +2517,7 @@ function TagInput({ id, label, values, onChange, placeholder }) {
           style={{ flexShrink: 0, padding: "10px 16px" }}
           aria-label="إضافة"
         >
-          +
+          <Plus size={14} strokeWidth={2.5} />
         </button>
       </div>
       {values.length > 0 && (
@@ -2489,7 +2530,7 @@ function TagInput({ id, label, values, onChange, placeholder }) {
                 onClick={() => onChange(values.filter((_, idx) => idx !== i))}
                 aria-label={`حذف ${v}`}
               >
-                ×
+                <X size={11} strokeWidth={2.5} />
               </button>
               {v}
             </span>
@@ -2568,9 +2609,21 @@ function ProductForm({ initial, onSave, onCancel, saving }) {
             fontWeight: 700,
             color: "#2B1A12",
             fontFamily: "'Playfair Display',serif",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
           }}
         >
-          {initial?.id ? "✏️ تعديل المنتج" : "➕ إضافة منتج جديد"}
+          {initial?.id ? (
+            <>
+              <Pencil size={16} color="#C9A24A" /> تعديل المنتج
+            </>
+          ) : (
+            <>
+              <Plus size={16} color="#C9A24A" strokeWidth={2.5} /> إضافة منتج
+              جديد
+            </>
+          )}
         </h2>
         <button
           type="button"
@@ -2578,7 +2631,7 @@ function ProductForm({ initial, onSave, onCancel, saving }) {
           onClick={onCancel}
           style={{ fontSize: 12 }}
         >
-          ✕ إغلاق
+          <X size={13} /> إغلاق
         </button>
       </div>
 
@@ -2881,11 +2934,10 @@ function MobileProductCard({ p, onEdit, onDelete }) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: 26,
             flexShrink: 0,
           }}
         >
-          🪑
+          <ProductPlaceholder size={26} />
         </div>
       )}
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -2991,7 +3043,7 @@ function MobileProductCard({ p, onEdit, onDelete }) {
               onClick={() => onEdit(p)}
               style={{ padding: "5px 10px", fontSize: 11 }}
             >
-              ✏️
+              <Pencil size={13} />
             </button>
             <button
               type="button"
@@ -2999,7 +3051,7 @@ function MobileProductCard({ p, onEdit, onDelete }) {
               onClick={() => onDelete(p.id)}
               style={{ padding: "5px 10px", fontSize: 11 }}
             >
-              🗑️
+              <Trash2 size={13} />
             </button>
           </div>
         </div>
@@ -3092,11 +3144,13 @@ function OrderDetailModal({ order, onClose, onStatusChange, saving }) {
               border: "none",
               cursor: "pointer",
               color: "#9A8A7A",
-              fontSize: 22,
-              lineHeight: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 4,
             }}
           >
-            ×
+            <X size={20} />
           </button>
         </div>
 
@@ -3134,11 +3188,10 @@ function OrderDetailModal({ order, onClose, onStatusChange, saving }) {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: 30,
                 flexShrink: 0,
               }}
             >
-              🪑
+              <ProductPlaceholder size={30} />
             </div>
           )}
           <div style={{ flex: 1, direction: "rtl" }}>
@@ -3425,25 +3478,25 @@ function OrdersSection({ showToast }) {
           {
             label: "إجمالي الطلبات",
             value: orderStats.total,
-            icon: "📋",
+            icon: <ClipboardList size={20} color="#5A341A" strokeWidth={1.8} />,
             color: "#5A341A",
           },
           {
             label: "قيد الانتظار",
             value: orderStats.pending,
-            icon: "⏳",
+            icon: <Clock size={20} color="#C9A24A" strokeWidth={1.8} />,
             color: "#C9A24A",
           },
           {
             label: "مؤكد",
             value: orderStats.confirmed,
-            icon: "✅",
+            icon: <CheckCircle2 size={20} color="#2980B9" strokeWidth={1.8} />,
             color: "#2980B9",
           },
           {
             label: "إجمالي الإيرادات",
             value: `${orderStats.revenue.toLocaleString()} EGP`,
-            icon: "💰",
+            icon: <Wallet size={20} color="#27AE60" strokeWidth={1.8} />,
             color: "#27AE60",
           },
         ].map((s, i) => (
@@ -3458,7 +3511,7 @@ function OrdersSection({ showToast }) {
               animationDelay: `${i * 55}ms`,
             }}
           >
-            <div style={{ fontSize: 20, marginBottom: 6 }}>{s.icon}</div>
+            <div style={{ marginBottom: 6 }}>{s.icon}</div>
             <p
               style={{
                 fontSize: 20,
@@ -3588,10 +3641,11 @@ function OrdersSection({ showToast }) {
                     cursor: "pointer",
                     color: "#9A8A7A",
                     padding: "0 10px",
-                    fontSize: 16,
+                    display: "flex",
+                    alignItems: "center",
                   }}
                 >
-                  ×
+                  <X size={14} />
                 </button>
               )}
             </div>
@@ -3724,11 +3778,10 @@ function OrdersSection({ showToast }) {
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
-                                fontSize: 18,
                                 flexShrink: 0,
                               }}
                             >
-                              🪑
+                              <ProductPlaceholder size={18} />
                             </div>
                           )}
                           <div style={{ direction: "rtl", minWidth: 0 }}>
@@ -3797,9 +3850,13 @@ function OrdersSection({ showToast }) {
                             type="button"
                             className="db-btn db-btn-ghost"
                             onClick={() => setSelectedOrder(o)}
-                            style={{ padding: "6px 11px", fontSize: 11 }}
+                            style={{
+                              padding: "6px 11px",
+                              fontSize: 11,
+                              gap: 5,
+                            }}
                           >
-                            👁️ عرض
+                            <Eye size={13} /> عرض
                           </button>
                           <button
                             type="button"
@@ -3807,7 +3864,7 @@ function OrdersSection({ showToast }) {
                             onClick={() => setDeleteId(o.id)}
                             style={{ padding: "6px 11px", fontSize: 11 }}
                           >
-                            🗑️
+                            <Trash2 size={13} />
                           </button>
                         </div>
                       </td>
@@ -3824,7 +3881,19 @@ function OrdersSection({ showToast }) {
                       color: "#9A8A7A",
                     }}
                   >
-                    <div style={{ fontSize: 38, marginBottom: 10 }}>📋</div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        marginBottom: 10,
+                      }}
+                    >
+                      <ClipboardList
+                        size={38}
+                        color="#C9A24A"
+                        strokeWidth={1.2}
+                      />
+                    </div>
                     <p
                       style={{
                         fontSize: 14,
@@ -3931,11 +4000,10 @@ function OrdersSection({ showToast }) {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        fontSize: 26,
                         flexShrink: 0,
                       }}
                     >
-                      🪑
+                      <ProductPlaceholder size={26} />
                     </div>
                   )}
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -4001,7 +4069,7 @@ function OrdersSection({ showToast }) {
                           onClick={() => setSelectedOrder(o)}
                           style={{ padding: "4px 9px", fontSize: 11 }}
                         >
-                          👁️
+                          <Eye size={13} />
                         </button>
                         <button
                           type="button"
@@ -4009,7 +4077,7 @@ function OrdersSection({ showToast }) {
                           onClick={() => setDeleteId(o.id)}
                           style={{ padding: "4px 9px", fontSize: 11 }}
                         >
-                          🗑️
+                          <Trash2 size={13} />
                         </button>
                       </div>
                     </div>
@@ -4025,7 +4093,15 @@ function OrdersSection({ showToast }) {
                 color: "#9A8A7A",
               }}
             >
-              <div style={{ fontSize: 36, marginBottom: 10 }}>📋</div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  marginBottom: 10,
+                }}
+              >
+                <ClipboardList size={36} color="#C9A24A" strokeWidth={1.2} />
+              </div>
               <p style={{ fontSize: 14, fontWeight: 600, color: "#5A341A" }}>
                 لا توجد طلبات
               </p>
@@ -4061,7 +4137,7 @@ function ProductsSection({ showToast }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [formMode, setFormMode] = useState(null); // null | "new" | "edit"
+  const [formMode, setFormMode] = useState(null);
   const [editProduct, setEditProduct] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
   const [search, setSearch] = useState("");
@@ -4178,25 +4254,25 @@ function ProductsSection({ showToast }) {
           {
             label: "إجمالي المنتجات",
             value: stats.total,
-            icon: "📦",
+            icon: <Package size={20} color="#5A341A" strokeWidth={1.8} />,
             color: "#5A341A",
           },
           {
             label: "متوفر في المخزن",
             value: stats.inStock,
-            icon: "✅",
+            icon: <CheckCircle2 size={20} color="#27AE60" strokeWidth={1.8} />,
             color: "#27AE60",
           },
           {
             label: "الفئات",
             value: stats.categories,
-            icon: "🏷️",
+            icon: <Tag size={20} color="#C9A24A" strokeWidth={1.8} />,
             color: "#C9A24A",
           },
           {
             label: "متوسط السعر",
             value: `${stats.avgPrice.toLocaleString()} EGP`,
-            icon: "💰",
+            icon: <Wallet size={20} color="#2980B9" strokeWidth={1.8} />,
             color: "#2980B9",
           },
         ].map((s, i) => (
@@ -4211,7 +4287,7 @@ function ProductsSection({ showToast }) {
               animationDelay: `${i * 55}ms`,
             }}
           >
-            <div style={{ fontSize: 20, marginBottom: 6 }}>{s.icon}</div>
+            <div style={{ marginBottom: 6 }}>{s.icon}</div>
             <p
               style={{
                 fontSize: 20,
@@ -4331,10 +4407,11 @@ function ProductsSection({ showToast }) {
                   cursor: "pointer",
                   color: "#9A8A7A",
                   padding: "0 10px",
-                  fontSize: 16,
+                  display: "flex",
+                  alignItems: "center",
                 }}
               >
-                ×
+                <X size={14} />
               </button>
             )}
           </div>
@@ -4443,10 +4520,9 @@ function ProductsSection({ showToast }) {
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              fontSize: 20,
                             }}
                           >
-                            🪑
+                            <ProductPlaceholder size={20} />
                           </div>
                         )}
                       </td>
@@ -4554,17 +4630,25 @@ function ProductsSection({ showToast }) {
                             type="button"
                             className="db-btn db-btn-ghost"
                             onClick={() => openEdit(p)}
-                            style={{ padding: "6px 11px", fontSize: 11 }}
+                            style={{
+                              padding: "6px 11px",
+                              fontSize: 11,
+                              gap: 5,
+                            }}
                           >
-                            ✏️ تعديل
+                            <Pencil size={12} /> تعديل
                           </button>
                           <button
                             type="button"
                             className="db-btn db-btn-danger"
                             onClick={() => setDeleteId(p.id)}
-                            style={{ padding: "6px 11px", fontSize: 11 }}
+                            style={{
+                              padding: "6px 11px",
+                              fontSize: 11,
+                              gap: 5,
+                            }}
                           >
-                            🗑️ حذف
+                            <Trash2 size={12} /> حذف
                           </button>
                         </div>
                       </td>
@@ -4581,7 +4665,15 @@ function ProductsSection({ showToast }) {
                       color: "#9A8A7A",
                     }}
                   >
-                    <div style={{ fontSize: 38, marginBottom: 10 }}>📦</div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        marginBottom: 10,
+                      }}
+                    >
+                      <Package size={38} color="#C9A24A" strokeWidth={1.2} />
+                    </div>
                     <p
                       style={{
                         fontSize: 14,
@@ -4599,7 +4691,7 @@ function ProductsSection({ showToast }) {
                         onClick={openNew}
                         style={{ marginTop: 12, fontSize: 12 }}
                       >
-                        ➕ أضف أول منتج
+                        <Plus size={13} strokeWidth={2.5} /> أضف أول منتج
                       </button>
                     )}
                   </td>
@@ -4668,7 +4760,15 @@ function ProductsSection({ showToast }) {
                 color: "#9A8A7A",
               }}
             >
-              <div style={{ fontSize: 36, marginBottom: 10 }}>📦</div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  marginBottom: 10,
+                }}
+              >
+                <Package size={36} color="#C9A24A" strokeWidth={1.2} />
+              </div>
               <p style={{ fontSize: 14, fontWeight: 600, color: "#5A341A" }}>
                 {search ? "لا توجد نتائج" : "لا توجد منتجات"}
               </p>
